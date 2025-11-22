@@ -1,51 +1,77 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createContext, useEffect, useState } from "react";
-import { fakeLogin } from "../services/auth";
+import { User } from "../services/users";
+
+type UserWithoutPassword = Omit<User, "password">;
 
 type AuthContextType = {
-  user: string | null;
-  login: (email: string, password: string) => Promise<boolean>;
-  logout: () => void;
-  loading: boolean;
+  user: UserWithoutPassword | null;
+  login: (u: User | UserWithoutPassword) => Promise<void>;
+  logout: () => Promise<void>;
+  isLoading: boolean;
 };
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
-  login: async () => false,
-  logout: () => {},
-  loading: true,
+  login: async () => {},
+  logout: async () => {},
+  isLoading: true,
 });
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+const SESSION_KEY = "SESSION";
 
-  // Cargar usuario desde AsyncStorage
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<UserWithoutPassword | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
-    (async () => {
-      const saved = await AsyncStorage.getItem("user");
-      if (saved) setUser(saved);
-      setLoading(false);
-    })();
+    loadSession();
   }, []);
 
-  const login = async (email: string, password: string) => {
-    const ok = await fakeLogin(email, password);
-    if (!ok) return false;
+  async function loadSession() {
+    try {
+      const data = await AsyncStorage.getItem(SESSION_KEY);
+      if (data) {
+        const parsedUser = JSON.parse(data);
+        setUser(parsedUser);
+      }
+    } catch (error) {
+      console.error("Error al cargar sesión:", error);
+      await AsyncStorage.removeItem(SESSION_KEY);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
-    setUser(email);
-    await AsyncStorage.setItem("user", email);
+  async function login(u: User | UserWithoutPassword) {
+    try {
+      // Si tiene password, la eliminamos; si no, usamos el objeto tal cual
+      const userWithoutPassword =
+        "password" in u ? (({ password, ...rest }) => rest)(u) : u;
 
-    return true;
-  };
+      setUser(userWithoutPassword);
+      await AsyncStorage.setItem(
+        SESSION_KEY,
+        JSON.stringify(userWithoutPassword)
+      );
+    } catch (error) {
+      console.error("Error al guardar sesión:", error);
+      throw new Error("No se pudo iniciar sesión");
+    }
+  }
 
-  const logout = async () => {
-    setUser(null);
-    await AsyncStorage.removeItem("user");
-  };
+  async function logout() {
+    try {
+      setUser(null);
+      await AsyncStorage.removeItem(SESSION_KEY);
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+      throw new Error("No se pudo cerrar sesión");
+    }
+  }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

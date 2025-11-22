@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { useContext, useState } from "react";
+import { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -9,45 +9,53 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { AuthContext } from "../../src/contexts/AuthContext";
-import { loginUser } from "../../src/services/users";
+import { registerUser } from "../../src/services/users";
 
-export default function LoginScreen() {
-  const { login } = useContext(AuthContext);
-  const router = useRouter();
-
+export default function RegisterScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
-  const handleLogin = async () => {
+  async function handleRegister() {
     // Validaciones
-    if (!email.trim() || !password.trim()) {
+    if (!email.trim() || !password.trim() || !confirmPassword.trim()) {
       Alert.alert("Error", "Todos los campos son obligatorios");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert("Error", "Las contraseñas no coinciden");
       return;
     }
 
     setIsLoading(true);
     try {
-      const user = await loginUser(email, password);
-      await login(user);
+      await registerUser(email, password);
+      Alert.alert("Éxito", "Usuario creado correctamente", [
+        {
+          text: "OK",
+          onPress: () => router.replace("/(auth)/login"),
+        },
+      ]);
     } catch (e: any) {
       Alert.alert("Error", e.message);
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Bienvenido</Text>
-      <Text style={styles.subtitle}>Inicia sesión para continuar</Text>
+      <Text style={styles.title}>Crear cuenta</Text>
+      <Text style={styles.subtitle}>Regístrate para comenzar</Text>
 
       <TextInput
         style={styles.input}
+        placeholder="Email"
         value={email}
         onChangeText={setEmail}
-        placeholder="Email"
         autoCapitalize="none"
         keyboardType="email-address"
         editable={!isLoading}
@@ -55,36 +63,41 @@ export default function LoginScreen() {
 
       <TextInput
         style={styles.input}
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
         placeholder="Contraseña"
+        value={password}
+        secureTextEntry
+        onChangeText={setPassword}
+        editable={!isLoading}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Confirmar contraseña"
+        value={confirmPassword}
+        secureTextEntry
+        onChangeText={setConfirmPassword}
         editable={!isLoading}
       />
 
       <TouchableOpacity
         style={[styles.button, isLoading && styles.buttonDisabled]}
-        onPress={handleLogin}
+        onPress={handleRegister}
         disabled={isLoading}
       >
         {isLoading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>Ingresar</Text>
+          <Text style={styles.buttonText}>Crear cuenta</Text>
         )}
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.linkButton}
-        onPress={() => router.push("/(auth)/register")}
+        onPress={() => router.back()}
         disabled={isLoading}
       >
-        <Text style={styles.linkText}>¿No tienes cuenta? Regístrate</Text>
+        <Text style={styles.linkText}>¿Ya tienes cuenta? Inicia sesión</Text>
       </TouchableOpacity>
-
-      <Text style={styles.hint}>
-        Demo: cualquier email / mínimo 6 caracteres
-      </Text>
     </View>
   );
 }
@@ -140,11 +153,5 @@ const styles = StyleSheet.create({
     color: "#007AFF",
     textAlign: "center",
     fontSize: 14,
-  },
-  hint: {
-    marginTop: 20,
-    textAlign: "center",
-    color: "#999",
-    fontSize: 12,
   },
 });
