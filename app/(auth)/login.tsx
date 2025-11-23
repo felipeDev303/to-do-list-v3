@@ -1,14 +1,14 @@
 import { useRouter } from "expo-router";
 import { useContext, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { COLORS, FONT_SIZE, SPACING } from "../../src/constants/theme";
 import { AuthContext } from "../../src/contexts/AuthContext";
@@ -42,8 +42,8 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
-      <Text style={styles.title}>Bienvenido</Text>
+      <StatusBar barStyle="light-ckaontent" backgroundColor={COLORS.background} />
+      <Text style={styles.title}>kai.zen</Text>
       <Text style={styles.subtitle}>Inicia sesión para continuar</Text>
 
       <TextInput
