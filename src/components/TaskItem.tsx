@@ -1,5 +1,6 @@
+import { Ionicons } from "@expo/vector-icons";
 import React, { memo } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { TaskStatus, Todo } from "../contexts/TodoReducer";
 
 type Props = {
@@ -16,6 +17,26 @@ function TaskItem({ item, onChangeStatus, onDelete }: Props) {
       >
         {item.text}
       </Text>
+
+      {/* Mostrar imagen si existe */}
+      {item.imageUri && (
+        <Image 
+          source={{ uri: item.imageUri }} 
+          style={styles.image}
+          resizeMode="cover"
+        />
+      )}
+
+      {/* Mostrar ubicación si existe */}
+      {item.location && (
+        <View style={styles.locationContainer}>
+          <Ionicons name="location" size={16} color="#007AFF" />
+          <Text style={styles.locationText}>
+            {item.location.address || 
+              `${item.location.latitude.toFixed(4)}, ${item.location.longitude.toFixed(4)}`}
+          </Text>
+        </View>
+      )}
 
       <View style={styles.buttons}>
         <StatusButton
@@ -105,6 +126,26 @@ const styles = StyleSheet.create({
     textDecorationLine: "line-through",
     opacity: 0.5,
     color: "#8E8E93",
+  },
+  image: {
+    width: "100%",
+    height: 200,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  locationContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginBottom: 12,
+    padding: 8,
+    backgroundColor: "#F2F2F7",
+    borderRadius: 6,
+  },
+  locationText: {
+    fontSize: 12,
+    color: "#007AFF",
+    flex: 1,
   },
   buttons: {
     flexDirection: "row",
