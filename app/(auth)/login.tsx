@@ -42,7 +42,7 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-ckaontent" backgroundColor={COLORS.background} />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
       <Text style={styles.title}>kai.zen</Text>
       <Text style={styles.subtitle}>Inicia sesión para continuar</Text>
 

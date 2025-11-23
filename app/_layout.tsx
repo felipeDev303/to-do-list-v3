@@ -1,6 +1,7 @@
 import { Stack } from "expo-router";
 import { useContext } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import "react-native-get-random-values";
 import { AuthContext, AuthProvider } from "../src/contexts/AuthContext";
 import { TodoProvider } from "../src/contexts/TodoContext";
 
