@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from "uuid";
+
 export type TaskStatus = "pending" | "in-progress" | "completed";
 
 export type Todo = {
@@ -21,7 +23,7 @@ export const todoReducer = (state: Todo[], action: TodoAction): Todo[] => {
       return [
         ...state,
         {
-          id: Date.now().toString(),
+          id: uuidv4(),
           text: action.payload,
           status: "pending",
         },
