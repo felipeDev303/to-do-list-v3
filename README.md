@@ -1,50 +1,363 @@
-# Welcome to your Expo app 👋
+# kai.zen - Aplicación de Gestión de Tareas
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Una aplicación moderna de gestión de tareas (To-Do List) desarrollada con React Native y Expo, que implementa autenticación, gestión de estado con Context API, y funcionalidades avanzadas como geolocalización y adjuntar imágenes.
 
-## Get started
+## 📋 Tabla de Contenidos
 
-1. Install dependencies
+- [Stack Tecnológico](#-stack-tecnológico)
+- [Arquitectura del Proyecto](#-arquitectura-del-proyecto)
+- [Estructura de Carpetas](#-estructura-de-carpetas)
+- [Flujo de Datos](#-flujo-de-datos)
+- [Componentes Principales](#-componentes-principales)
+- [Instalación y Uso](#-instalación-y-uso)
+- [Funcionalidades](#-funcionalidades)
 
-   ```bash
-   npm install
-   ```
+## 🚀 Stack Tecnológico
 
-2. Start the app
+### React Native
+React Native es el framework base que permite escribir aplicaciones móviles nativas usando JavaScript y React. En este proyecto:
+- **Versión**: 0.81.5
+- **React**: 19.1.0
+- Se utiliza para renderizar componentes nativos de iOS y Android
+- Proporciona APIs nativas como `Image`, `FlatList`, `TextInput`, etc.
 
-   ```bash
-   npx expo start
-   ```
+### Expo
+Expo es una plataforma que envuelve React Native y proporciona herramientas y servicios adicionales:
+- **Versión SDK**: ~54.0.25
+- **Expo Router**: Sistema de navegación basado en archivos (file-based routing)
+- **Ventajas**:
+  - Configuración simplificada sin necesidad de Xcode o Android Studio
+  - Acceso a APIs nativas a través de paquetes expo (camera, location, etc.)
+  - Hot reload y desarrollo rápido
+  - Soporte para web, iOS y Android desde un solo código base
 
-In the output, you'll find options to open the app in a
+### TypeScript
+El proyecto está completamente tipado con TypeScript para mejor seguridad de tipos y experiencia de desarrollo.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## 🏗️ Arquitectura del Proyecto
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### Patrón de Diseño
+El proyecto sigue una arquitectura basada en **React Context API** para la gestión de estado global, con los siguientes principios:
 
-## Get a fresh project
+1. **Separación de Responsabilidades**: 
+   - Componentes de UI (`src/components`)
+   - Lógica de negocio (`src/contexts`, `src/services`)
+   - Navegación (`app/`)
 
-When you're ready, run:
+2. **File-based Routing con Expo Router**:
+   - La estructura de carpetas en `app/` define automáticamente las rutas
+   - Grupos de rutas con `(auth)` y `(tabs)`
+   - Layout compartidos con `_layout.tsx`
 
-```bash
-npm run reset-project
+3. **Gestión de Estado**:
+   - **Context API**: Para estado compartido entre componentes
+   - **useReducer**: Para lógica compleja de actualización de estado (tareas)
+   - **Custom Hooks**: Para encapsular lógica reutilizable
+
+## 📁 Estructura de Carpetas
+
+```
+to-do-list-v3/
+│
+├── app/                          # Sistema de navegación (Expo Router)
+│   ├── (auth)/                   # Grupo de rutas de autenticación
+│   │   ├── login.tsx            # Pantalla de inicio de sesión
+│   │   └── register.tsx         # Pantalla de registro
+│   │
+│   ├── (tabs)/                   # Grupo de rutas con tab navigation
+│   │   ├── index.tsx            # Pantalla principal (lista de tareas)
+│   │   ├── settings.tsx         # Pantalla de ajustes
+│   │   └── _layout.tsx          # Layout de las tabs (Bottom Navigation)
+│   │
+│   └── _layout.tsx              # Layout raíz (Providers globales)
+│
+├── src/                          # Código fuente de la aplicación
+│   ├── components/              # Componentes reutilizables
+│   │   ├── Button.tsx
+│   │   ├── EmptyState.tsx       # Componente para estados vacíos
+│   │   ├── FloatingButton.tsx   # FAB para agregar tareas
+│   │   ├── Header.tsx           # Encabezado de la app
+│   │   ├── SearchBar.tsx        # Barra de búsqueda
+│   │   ├── SegmentedControl.tsx # Control segmentado (tabs)
+│   │   ├── StatusFilter.tsx     # Filtro por estado de tarea
+│   │   ├── TaskFormModal.tsx    # Modal para crear/editar tareas
+│   │   └── TaskItem.tsx         # Card individual de tarea
+│   │
+│   ├── constants/               # Constantes de la aplicación
+│   │   ├── colors.ts           # Paleta de colores
+│   │   └── theme.ts            # Sistema de diseño (spacing, font sizes)
+│   │
+│   ├── contexts/                # Contextos de React (Estado global)
+│   │   ├── AuthContext.tsx     # Gestión de autenticación
+│   │   ├── TodoContext.tsx     # Gestión de tareas
+│   │   └── TodoReducer.ts      # Reducer para acciones de tareas
+│   │
+│   ├── hooks/                   # Custom hooks
+│   │   ├── useAuth.ts          # Hook para acceder al contexto de auth
+│   │   └── useTodos.ts         # Hook para acceder al contexto de todos
+│   │
+│   ├── services/                # Capa de servicios (lógica de negocio)
+│   │   ├── auth.ts             # Servicio de autenticación
+│   │   ├── storage.ts          # Persistencia con AsyncStorage
+│   │   └── users.ts            # Gestión de usuarios
+│   │
+│   └── utils/                   # Utilidades
+│       └── validators.ts       # Funciones de validación
+│
+├── assets/                      # Recursos estáticos (imágenes, fuentes)
+├── package.json                 # Dependencias y scripts
+├── app.json                     # Configuración de Expo
+└── tsconfig.json               # Configuración de TypeScript
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 🔄 Flujo de Datos
 
-## Learn more
+### 1. Autenticación (AuthContext)
 
-To learn more about developing your project with Expo, look at the following resources:
+```
+Usuario ingresa credenciales
+        ↓
+  loginUser() [services/users.ts]
+        ↓
+  Valida credenciales simuladas
+        ↓
+  login() actualiza AuthContext
+        ↓
+  Guarda usuario en AsyncStorage
+        ↓
+  Router redirige a (tabs)/
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+**Implementación**:
+```typescript
+// AuthContext proporciona:
+interface AuthContextType {
+  user: User | null;
+  isLoading: boolean;
+  login: (user: User) => Promise<void>;
+  logout: () => Promise<void>;
+}
+```
 
-## Join the community
+### 2. Gestión de Tareas (TodoContext + Reducer)
 
-Join our community of developers creating universal apps.
+```
+Usuario crea una tarea
+        ↓
+  dispatch({ type: 'ADD', payload: {...} })
+        ↓
+  todoReducer procesa la acción
+        ↓
+  Genera UUID, crea nueva tarea
+        ↓
+  Actualiza estado con nueva tarea
+        ↓
+  useEffect persiste en AsyncStorage
+        ↓
+  UI se re-renderiza automáticamente
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+**Reducer Pattern**:
+```typescript
+// Acciones disponibles:
+type TodoAction =
+  | { type: "ADD"; payload: { text, imageUri?, location? } }
+  | { type: "SET_STATUS"; payload: { id, status } }
+  | { type: "DELETE"; payload: string }
+  | { type: "SET"; payload: Todo[] }
+```
+
+### 3. Navegación con Expo Router
+
+Expo Router utiliza el sistema de archivos para definir rutas automáticamente:
+
+```
+app/
+├── _layout.tsx              → Provider raíz
+├── (auth)/
+│   ├── login.tsx           → /login
+│   └── register.tsx        → /register
+└── (tabs)/
+    ├── _layout.tsx         → Bottom tabs layout
+    ├── index.tsx           → / (Inicio)
+    └── settings.tsx        → /settings
+```
+
+**Protección de rutas**:
+```typescript
+// En (tabs)/_layout.tsx
+if (!user) return <Redirect href="/(auth)/login" />;
+```
+
+## 🧩 Componentes Principales
+
+### TaskItem.tsx
+**Responsabilidad**: Renderizar una tarjeta individual de tarea
+
+**Características**:
+- Muestra imagen adjunta (si existe)
+- Muestra ubicación con ícono (si existe)
+- Botones de cambio de estado (pending, in-progress, completed)
+- Botón de eliminar
+
+```typescript
+<TaskItem
+  item={todo}                              // Datos de la tarea
+  onChangeStatus={(status) => {...}}       // Callback cambio de estado
+  onDelete={() => {...}}                   // Callback eliminar
+/>
+```
+
+### TaskFormModal.tsx
+**Responsabilidad**: Modal para crear nuevas tareas con formulario completo
+
+**Funcionalidades**:
+- Input de texto para descripción
+- Selector de imagen (expo-image-picker)
+- Captura automática de ubicación (expo-location)
+- Validación de campos
+
+### TodoContext
+**Responsabilidad**: Proveer estado global de tareas a toda la aplicación
+
+**Características**:
+- Estado en memoria con `useReducer`
+- Persistencia automática en `AsyncStorage`
+- Carga inicial desde almacenamiento local
+- Exporta `dispatch` para modificar estado
+
+## 📦 Instalación y Uso
+
+### Prerrequisitos
+- Node.js (v16 o superior)
+- npm o yarn
+- Expo CLI (opcional, se instala automáticamente)
+
+### Instalación
+
+```bash
+# 1. Clonar el repositorio
+git clone <url-del-repositorio>
+cd to-do-list-v3
+
+# 2. Instalar dependencias
+npm install
+
+# 3. Iniciar el servidor de desarrollo
+npm start
+```
+
+### Scripts disponibles
+
+```bash
+npm start          # Inicia Expo Dev Server
+npm run android    # Ejecuta en emulador/dispositivo Android
+npm run ios        # Ejecuta en simulador/dispositivo iOS
+npm run web        # Ejecuta en navegador web
+npm run lint       # Ejecuta ESLint
+```
+
+### Desarrollo
+
+1. Escanea el QR con la app **Expo Go** (iOS/Android)
+2. O presiona `w` para abrir en navegador web
+3. Hot reload está habilitado automáticamente
+
+## ✨ Funcionalidades
+
+### Implementadas
+- ✅ **Autenticación simulada** con persistencia
+- ✅ **CRUD de tareas** (Crear, Leer, Actualizar, Eliminar)
+- ✅ **Estados de tarea**: Pendiente, En progreso, Completado
+- ✅ **Filtrado por estado** (Kanban-style)
+- ✅ **Búsqueda de tareas** por texto
+- ✅ **Adjuntar imágenes** a tareas
+- ✅ **Geolocalización automática** al crear tareas
+- ✅ **Persistencia local** con AsyncStorage
+- ✅ **UI/UX moderna** con tema oscuro
+- ✅ **Navegación file-based** con Expo Router
+- ✅ **Safe Area handling** para notches y bordes redondeados
+
+### Detalles Técnicos
+
+#### Persistencia de Datos
+```typescript
+// AsyncStorage guarda:
+STORAGE_KEY_USER = "@user"         // Usuario autenticado
+STORAGE_KEY_TODOS = "@todos"       // Array de tareas
+```
+
+#### Generación de IDs
+Se utiliza `uuid` con polyfill `react-native-get-random-values` para generar IDs únicos:
+```typescript
+import { v4 as uuidv4 } from "uuid";
+const newTodo = { id: uuidv4(), ... };
+```
+
+#### Geolocalización
+```typescript
+// Se solicita permiso y captura ubicación al crear tarea
+const { status } = await Location.requestForegroundPermissionsAsync();
+const location = await Location.getCurrentPositionAsync({});
+```
+
+## 🎨 Sistema de Diseño
+
+El proyecto utiliza un sistema de diseño centralizado en `src/constants/theme.ts`:
+
+```typescript
+export const COLORS = {
+  background: '#1F1D2B',
+  card: '#252836',
+  primary: '#8B5CF6',
+  secondary: '#A78BFA',
+  // ...
+};
+
+export const SPACING = {
+  xs: 4,
+  s: 8,
+  m: 16,
+  l: 24,
+  xl: 32,
+};
+```
+
+## 🔐 Autenticación
+
+**Nota**: La autenticación es simulada para propósitos de demostración.
+
+- Cualquier email es válido
+- Password debe tener mínimo 6 caracteres
+- Los usuarios se persisten en AsyncStorage
+- No hay backend real
+
+## 🛠️ Tecnologías y Librerías Clave
+
+| Librería | Propósito |
+|----------|-----------|
+| `expo-router` | Navegación file-based |
+| `@react-native-async-storage/async-storage` | Persistencia local |
+| `expo-image-picker` | Selector de imágenes |
+| `expo-location` | Geolocalización |
+| `react-native-safe-area-context` | Manejo de safe areas |
+| `uuid` | Generación de IDs únicos |
+| `@expo/vector-icons` | Iconos (Ionicons) |
+
+## 📱 Compatibilidad
+
+- ✅ iOS
+- ✅ Android
+- ✅ Web (experimental)
+
+## 🤝 Contribuciones
+
+Este es un proyecto educativo. Las contribuciones son bienvenidas.
+
+## 📄 Licencia
+
+MIT
+
+---
+
+**Desarrollado con ❤️ usando React Native + Expo**
