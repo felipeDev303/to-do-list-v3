@@ -1,14 +1,43 @@
 import { useContext } from "react";
-import { Button, Text, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { COLORS, FONT_SIZE, SPACING } from "../../src/constants/theme";
 import { AuthContext } from "../../src/contexts/AuthContext";
 
-// Solo a modo de ejemplo
 export default function Settings() {
   const { logout } = useContext(AuthContext);
   return (
-    <View>
-      <Text>Configuración</Text>
-      <Button title="Cerrar sesión" onPress={logout} />
+    <View style={styles.container}>
+      <Text style={styles.title}>Configuración</Text>
+      <TouchableOpacity style={styles.button} onPress={logout}>
+        <Text style={styles.buttonText}>Cerrar sesión</Text>
+      </TouchableOpacity>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+    padding: SPACING.l,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  title: {
+    fontSize: 24,
+    color: COLORS.white,
+    marginBottom: SPACING.xl,
+    fontWeight: "bold",
+  },
+  button: {
+    backgroundColor: COLORS.accent,
+    paddingVertical: SPACING.m,
+    paddingHorizontal: SPACING.xl,
+    borderRadius: 12,
+  },
+  buttonText: {
+    color: COLORS.white,
+    fontSize: FONT_SIZE.m,
+    fontWeight: "600",
+  },
+});

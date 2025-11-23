@@ -10,21 +10,26 @@ import FloatingButton from "../../src/components/FloatingButton";
 import Header from "../../src/components/Header";
 import SearchBar from "../../src/components/SearchBar";
 import SegmentedControl from "../../src/components/SegmentedControl";
+import StatusFilter from "../../src/components/StatusFilter";
 import TaskItem from "../../src/components/TaskItem";
 import { COLORS, SPACING } from "../../src/constants/theme";
+import { TaskStatus } from "../../src/contexts/TodoReducer";
 import { useTodos } from "../../src/hooks/useTodos";
 
 export default function Home() {
   const { todos, dispatch } = useTodos();
   const [view, setView] = useState<"Calendario" | "Notas">("Notas");
   const [searchText, setSearchText] = useState("");
+  const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
 
   // Filter logic
   const filteredTodos = useMemo(() => {
-    return todos.filter((todo) =>
-      todo.text.toLowerCase().includes(searchText.toLowerCase())
-    );
-  }, [todos, searchText]);
+    return todos.filter((todo) => {
+      const matchesSearch = todo.text.toLowerCase().includes(searchText.toLowerCase());
+      const matchesStatus = statusFilter === "all" ? true : todo.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [todos, searchText, statusFilter]);
 
   const handleAdd = useCallback(() => {
     // For now, just adding a dummy task to test UI
@@ -47,6 +52,8 @@ export default function Home() {
       <SegmentedControl selected={view} onSelect={setView} />
       
       <SearchBar value={searchText} onChangeText={setSearchText} />
+
+      <StatusFilter selected={statusFilter} onSelect={setStatusFilter} />
 
       <FlatList
         data={filteredTodos}

@@ -1,14 +1,16 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
+import { COLORS, FONT_SIZE, SPACING } from "../../src/constants/theme";
 import { registerUser } from "../../src/services/users";
 
 export default function RegisterScreen() {
@@ -48,12 +50,14 @@ export default function RegisterScreen() {
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
       <Text style={styles.title}>Crear cuenta</Text>
       <Text style={styles.subtitle}>Regístrate para comenzar</Text>
 
       <TextInput
         style={styles.input}
         placeholder="Email"
+        placeholderTextColor={COLORS.textSecondary}
         value={email}
         onChangeText={setEmail}
         autoCapitalize="none"
@@ -64,6 +68,7 @@ export default function RegisterScreen() {
       <TextInput
         style={styles.input}
         placeholder="Contraseña"
+        placeholderTextColor={COLORS.textSecondary}
         value={password}
         secureTextEntry
         onChangeText={setPassword}
@@ -73,6 +78,7 @@ export default function RegisterScreen() {
       <TextInput
         style={styles.input}
         placeholder="Confirmar contraseña"
+        placeholderTextColor={COLORS.textSecondary}
         value={confirmPassword}
         secureTextEntry
         onChangeText={setConfirmPassword}
@@ -105,53 +111,56 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    padding: SPACING.l,
     justifyContent: "center",
-    backgroundColor: "#fff",
+    backgroundColor: COLORS.background,
   },
   title: {
     fontSize: 32,
     fontWeight: "bold",
-    marginBottom: 8,
+    marginBottom: SPACING.s,
     textAlign: "center",
+    color: COLORS.white,
   },
   subtitle: {
-    fontSize: 16,
-    color: "#666",
-    marginBottom: 32,
+    fontSize: FONT_SIZE.m,
+    color: COLORS.textSecondary,
+    marginBottom: SPACING.xl,
     textAlign: "center",
   },
   input: {
+    backgroundColor: COLORS.inputBackground,
+    padding: SPACING.m,
+    marginBottom: SPACING.m,
+    borderRadius: 12,
+    fontSize: FONT_SIZE.m,
+    color: COLORS.white,
     borderWidth: 1,
-    borderColor: "#ddd",
-    padding: 15,
-    marginBottom: 15,
-    borderRadius: 8,
-    backgroundColor: "#fff",
-    fontSize: 16,
+    borderColor: "transparent",
   },
   button: {
-    backgroundColor: "#007AFF",
-    padding: 15,
-    borderRadius: 8,
+    backgroundColor: COLORS.primary,
+    padding: SPACING.m,
+    borderRadius: 12,
     alignItems: "center",
-    marginTop: 10,
+    marginTop: SPACING.s,
   },
   buttonDisabled: {
-    backgroundColor: "#999",
+    backgroundColor: COLORS.secondary,
+    opacity: 0.7,
   },
   buttonText: {
-    color: "#fff",
-    fontSize: 16,
+    color: COLORS.white,
+    fontSize: FONT_SIZE.m,
     fontWeight: "600",
   },
   linkButton: {
-    marginTop: 20,
-    padding: 10,
+    marginTop: SPACING.l,
+    padding: SPACING.s,
   },
   linkText: {
-    color: "#007AFF",
+    color: COLORS.secondary,
     textAlign: "center",
-    fontSize: 14,
+    fontSize: FONT_SIZE.m,
   },
 });
