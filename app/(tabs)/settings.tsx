@@ -1,17 +1,18 @@
 import { useContext } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS, FONT_SIZE, SPACING } from "../../src/constants/theme";
 import { AuthContext } from "../../src/contexts/AuthContext";
 
 export default function Settings() {
   const { logout } = useContext(AuthContext);
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Configuración</Text>
       <TouchableOpacity style={styles.button} onPress={logout}>
         <Text style={styles.buttonText}>Cerrar sesión</Text>
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 }
 

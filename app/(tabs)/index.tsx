@@ -2,9 +2,9 @@ import { useCallback, useMemo, useState } from "react";
 import {
     FlatList,
     StatusBar,
-    StyleSheet,
-    View,
+    StyleSheet
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import EmptyState from "../../src/components/EmptyState";
 import FloatingButton from "../../src/components/FloatingButton";
 import Header from "../../src/components/Header";
@@ -48,7 +48,7 @@ export default function Home() {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
       <Header />
       
@@ -81,7 +81,7 @@ export default function Home() {
         onClose={() => setIsModalVisible(false)} 
         onSubmit={handleAdd} 
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -90,7 +90,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
     padding: SPACING.m,
-    paddingTop: 60, // Space for status bar
   },
   listContent: {
     paddingBottom: 100, // Space for FAB
