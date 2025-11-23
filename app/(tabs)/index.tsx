@@ -1,3 +1,4 @@
+
 import { useCallback, useMemo, useState } from "react";
 import {
   FlatList,
@@ -11,9 +12,10 @@ import Header from "../../src/components/Header";
 import SearchBar from "../../src/components/SearchBar";
 import SegmentedControl from "../../src/components/SegmentedControl";
 import StatusFilter from "../../src/components/StatusFilter";
+import TaskFormModal from "../../src/components/TaskFormModal";
 import TaskItem from "../../src/components/TaskItem";
 import { COLORS, SPACING } from "../../src/constants/theme";
-import { TaskStatus } from "../../src/contexts/TodoReducer";
+import { TaskStatus, TodoLocation } from "../../src/contexts/TodoReducer";
 import { useTodos } from "../../src/hooks/useTodos";
 
 export default function Home() {
@@ -21,6 +23,7 @@ export default function Home() {
   const [view, setView] = useState<"Calendario" | "Notas">("Notas");
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   // Filter logic
   const filteredTodos = useMemo(() => {
@@ -31,10 +34,11 @@ export default function Home() {
     });
   }, [todos, searchText, statusFilter]);
 
-  const handleAdd = useCallback(() => {
-    // For now, just adding a dummy task to test UI
-    // In real app, this would open a modal
-    dispatch({ type: "ADD", payload: "Nueva Tarea " + new Date().toLocaleTimeString() });
+  const handleAdd = useCallback((text: string, imageUri?: string, location?: TodoLocation) => {
+    dispatch({ 
+      type: "ADD", 
+      payload: { text, imageUri, location } 
+    });
   }, [dispatch]);
 
   const handleDelete = useCallback(
@@ -71,7 +75,13 @@ export default function Home() {
         ListEmptyComponent={<EmptyState message="No se encontraron notas" emoji="🌑" />}
       />
 
-      <FloatingButton onPress={handleAdd} />
+      <FloatingButton onPress={() => setIsModalVisible(true)} />
+
+      <TaskFormModal 
+        visible={isModalVisible} 
+        onClose={() => setIsModalVisible(false)} 
+        onSubmit={handleAdd} 
+      />
     </View>
   );
 }

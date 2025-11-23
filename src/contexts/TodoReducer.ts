@@ -2,14 +2,30 @@ import { v4 as uuidv4 } from "uuid";
 
 export type TaskStatus = "pending" | "in-progress" | "completed";
 
+export type TodoLocation = {
+  latitude: number;
+  longitude: number;
+  address?: string;
+};
+
 export type Todo = {
   id: string; // Identificador único
   text: string; // Descripción de la tarea
   status: TaskStatus; // Estado de la tarea
+  imageUri?: string; // URI de la imagen adjunta
+  location?: TodoLocation; // Ubicación de la tarea
+  createdAt: number;
 };
 
 export type TodoAction =
-  | { type: "ADD"; payload: string }
+  | { 
+      type: "ADD"; 
+      payload: { 
+        text: string; 
+        imageUri?: string; 
+        location?: TodoLocation 
+      } 
+    }
   | { type: "SET_STATUS"; payload: { id: string; status: TaskStatus } }
   | { type: "DELETE"; payload: string }
   | { type: "SET"; payload: Todo[] };
@@ -21,12 +37,15 @@ export const todoReducer = (state: Todo[], action: TodoAction): Todo[] => {
 
     case "ADD":
       return [
-        ...state,
         {
           id: uuidv4(),
-          text: action.payload,
+          text: action.payload.text,
           status: "pending",
+          imageUri: action.payload.imageUri,
+          location: action.payload.location,
+          createdAt: Date.now(),
         },
+        ...state,
       ];
 
     case "SET_STATUS":
