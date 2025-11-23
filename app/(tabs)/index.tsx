@@ -1,12 +1,11 @@
-
 import { useCallback, useMemo, useState } from "react";
 import {
-  FlatList,
-  StatusBar,
-  StyleSheet,
-  View,
+    FlatList,
+    StatusBar,
+    StyleSheet,
+    View,
 } from "react-native";
-import EmptyState from "../../src/components/EmptyState"; // Keeping this for now, might need restyling
+import EmptyState from "../../src/components/EmptyState";
 import FloatingButton from "../../src/components/FloatingButton";
 import Header from "../../src/components/Header";
 import SearchBar from "../../src/components/SearchBar";
@@ -90,9 +89,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
+    padding: SPACING.m,
+    paddingTop: 60, // Space for status bar
   },
   listContent: {
-    padding: SPACING.m,
     paddingBottom: 100, // Space for FAB
+    gap: SPACING.s,
   },
 });

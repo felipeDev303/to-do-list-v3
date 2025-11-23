@@ -1,7 +1,5 @@
-import { Ionicons } from "@expo/vector-icons";
 import React, { memo } from "react";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { COLORS, FONT_SIZE, SPACING } from "../constants/theme";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { TaskStatus, Todo } from "../contexts/TodoReducer";
 
 type Props = {
@@ -13,90 +11,133 @@ type Props = {
 function TaskItem({ item, onChangeStatus, onDelete }: Props) {
   return (
     <View style={styles.container}>
-      {item.imageUri && (
-        <Image source={{ uri: item.imageUri }} style={styles.image} />
-      )}
-      
-      <View style={styles.content}>
-        <Text style={styles.text}>{item.text}</Text>
-        <View style={styles.metaContainer}>
-          <Text style={styles.date}>Hoy</Text>
-          {item.location && (
-            <View style={styles.locationBadge}>
-              <Ionicons name="location-sharp" size={12} color={COLORS.textSecondary} />
-            </View>
-          )}
-        </View>
-      </View>
-      
-      <TouchableOpacity onPress={onDelete} style={styles.pinButton}>
-         <Ionicons name="trash-outline" size={16} color={COLORS.textSecondary} />
-      </TouchableOpacity>
+      <Text
+        style={[styles.text, item.status === "completed" && styles.completed]}
+      >
+        {item.text}
+      </Text>
 
-       {/* Status Indicator */}
-      <View style={[styles.statusIndicator, 
-        item.status === 'completed' && { backgroundColor: COLORS.secondary },
-        item.status === 'in-progress' && { backgroundColor: COLORS.primary }
-      ]} />
+      <View style={styles.buttons}>
+        <StatusButton
+          emoji="🟡"
+          status="pending"
+          currentStatus={item.status}
+          onPress={() => onChangeStatus("pending")}
+        />
+        <StatusButton
+          emoji="🔵"
+          status="in-progress"
+          currentStatus={item.status}
+          onPress={() => onChangeStatus("in-progress")}
+        />
+        <StatusButton
+          emoji="🟢"
+          status="completed"
+          currentStatus={item.status}
+          onPress={() => onChangeStatus("completed")}
+        />
+        <TouchableOpacity
+          style={[styles.statusButton, styles.deleteButton]}
+          onPress={onDelete}
+        >
+          <Text style={styles.emoji}>🗑</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
+
+// Componente auxiliar para botones de estado
+const StatusButton = memo(
+  ({
+    emoji,
+    status,
+    currentStatus,
+    onPress,
+  }: {
+    emoji: string;
+    status: TaskStatus;
+    currentStatus: TaskStatus;
+    onPress: () => void;
+  }) => {
+    const isActive = currentStatus === status;
+
+    return (
+      <TouchableOpacity
+        style={[
+          styles.statusButton,
+          isActive && styles.statusButtonActive,
+          isActive && styles[`${status}Active`],
+        ]}
+        onPress={onPress}
+        activeOpacity={0.7}
+      >
+        <Text style={[styles.emoji, isActive && styles.emojiActive]}>
+          {emoji}
+        </Text>
+      </TouchableOpacity>
+    );
+  }
+);
+
+StatusButton.displayName = "StatusButton";
 
 export default memo(TaskItem);
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: COLORS.card,
+    padding: 15,
+    backgroundColor: "#fff",
+    marginBottom: 10,
     borderRadius: 12,
-    padding: SPACING.m,
-    marginBottom: SPACING.m,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    minHeight: 100,
-    overflow: "hidden",
-  },
-  image: {
-    width: 60,
-    height: 60,
-    borderRadius: 8,
-    marginRight: SPACING.m,
-    backgroundColor: COLORS.background,
-  },
-  content: {
-    flex: 1,
-    marginRight: SPACING.s,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   text: {
-    fontSize: FONT_SIZE.m,
-    color: COLORS.white,
-    marginBottom: SPACING.s,
-    lineHeight: 20,
+    fontSize: 16,
+    marginBottom: 12,
+    color: "#1C1C1E",
   },
-  metaContainer: {
+  completed: {
+    textDecorationLine: "line-through",
+    opacity: 0.5,
+    color: "#8E8E93",
+  },
+  buttons: {
     flexDirection: "row",
+    gap: 8,
+  },
+  statusButton: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: "#F2F2F7",
     alignItems: "center",
-    gap: SPACING.s,
+    justifyContent: "center",
   },
-  date: {
-    fontSize: FONT_SIZE.s,
-    color: COLORS.textSecondary,
+  statusButtonActive: {
+    backgroundColor: "#007AFF",
   },
-  locationBadge: {
-    padding: 2,
-    borderRadius: 4,
-    backgroundColor: COLORS.inputBackground,
+  emoji: {
+    fontSize: 18,
   },
-  pinButton: {
-    padding: SPACING.xs,
+  emojiActive: {
+    transform: [{ scale: 1.2 }],
   },
-  statusIndicator: {
-    position: "absolute",
-    bottom: SPACING.m,
-    right: SPACING.m,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "transparent", 
-  }
+  pendingActive: {
+    backgroundColor: "#FFD700",
+  },
+  "in-progressActive": {
+    backgroundColor: "#4169E1",
+  },
+  completedActive: {
+    backgroundColor: "#32CD32",
+  },
+  deleteButton: {
+    backgroundColor: "#FF3B30",
+  },
 });
