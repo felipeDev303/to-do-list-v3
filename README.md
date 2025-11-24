@@ -98,10 +98,12 @@ to-do-list-v3/
 │   │
 │   ├── services/                # Capa de servicios (lógica de negocio)
 │   │   ├── auth.ts             # Servicio de autenticación
-│   │   ├── storage.ts          # Persistencia con AsyncStorage
+│   │   ├── platformStorage.ts  # Storage multiplataforma (web/mobile)
+│   │   ├── storage.ts          # Persistencia de tareas
 │   │   └── users.ts            # Gestión de usuarios
 │   │
 │   └── utils/                   # Utilidades
+│       ├── alert.ts            # Alertas multiplataforma (web/mobile)
 │       └── validators.ts       # Funciones de validación
 │
 ├── assets/                      # Recursos estáticos (imágenes, fuentes)
@@ -273,18 +275,25 @@ npm run lint       # Ejecuta ESLint
 - ✅ **Búsqueda de tareas** por texto
 - ✅ **Adjuntar imágenes** a tareas
 - ✅ **Geolocalización automática** al crear tareas
-- ✅ **Persistencia local** con AsyncStorage
+- ✅ **Persistencia local** multiplataforma (localStorage en web, AsyncStorage en móvil)
+- ✅ **Alertas multiplataforma** (window.alert en web, Alert.alert en móvil)
 - ✅ **UI/UX moderna** con tema oscuro
 - ✅ **Navegación file-based** con Expo Router
 - ✅ **Safe Area handling** para notches y bordes redondeados
+- ✅ **Compatibilidad web completa** con adaptadores específicos
 
 ### Detalles Técnicos
 
 #### Persistencia de Datos
+La aplicación utiliza un sistema de almacenamiento multiplataforma:
 ```typescript
-// AsyncStorage guarda:
-STORAGE_KEY_USER = "@user"         // Usuario autenticado
-STORAGE_KEY_TODOS = "@todos"       // Array de tareas
+// platformStorage.ts - Adaptador multiplataforma
+// En web: usa localStorage
+// En móvil: usa AsyncStorage
+
+STORAGE_KEY_SESSION = "SESSION"    // Sesión de usuario
+STORAGE_KEY_USERS = "USERS"        // Base de datos de usuarios
+STORAGE_KEY_TODOS = "todos"        // Array de tareas
 ```
 
 #### Generación de IDs
@@ -329,8 +338,35 @@ export const SPACING = {
 
 - Cualquier email es válido
 - Password debe tener mínimo 6 caracteres
-- Los usuarios se persisten en AsyncStorage
+- Los usuarios se persisten en almacenamiento multiplataforma (localStorage en web, AsyncStorage en móvil)
 - No hay backend real
+
+## 🌐 Compatibilidad Web
+
+La aplicación incluye adaptadores específicos para funcionar correctamente en navegadores web:
+
+### PlatformStorage
+```typescript
+// src/services/platformStorage.ts
+// Detecta automáticamente la plataforma y usa el almacenamiento apropiado
+- Web: localStorage
+- iOS/Android: AsyncStorage
+```
+
+### Alertas Multiplataforma
+```typescript
+// src/utils/alert.ts
+// Adapta las alertas según la plataforma
+- Web: window.alert / window.confirm
+- iOS/Android: Alert.alert nativo
+```
+
+### Consideraciones Web
+- ✅ Todas las funcionalidades de móvil están disponibles en web
+- ✅ La interfaz es completamente responsive
+- ✅ Los datos persisten entre sesiones
+- ⚠️ Geolocalización y cámara requieren permisos del navegador
+
 
 ## 🛠️ Tecnologías y Librerías Clave
 
@@ -346,9 +382,12 @@ export const SPACING = {
 
 ## 📱 Compatibilidad
 
-- ✅ iOS
-- ✅ Android
-- ✅ Web (experimental)
+- ✅ **iOS**: Soporte completo con safe areas y gestos nativos
+- ✅ **Android**: Soporte completo con material design
+- ✅ **Web**: Soporte completo con adaptadores multiplataforma
+  - localStorage para persistencia
+  - window.alert/confirm para alertas
+  - Funcionalidad completa de la app
 
 ## 🤝 Contribuciones
 
