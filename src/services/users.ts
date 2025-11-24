@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import platformStorage from "./platformStorage";
 
 const USERS_KEY = "USERS";
 
@@ -11,7 +11,7 @@ export type User = {
 // ✅ Manejo de errores agregado
 export async function getUsers(): Promise<User[]> {
   try {
-    const data = await AsyncStorage.getItem(USERS_KEY);
+    const data = await platformStorage.getItem(USERS_KEY);
     return data ? JSON.parse(data) : [];
   } catch (error) {
     console.error("Error al obtener usuarios:", error);
@@ -22,7 +22,7 @@ export async function getUsers(): Promise<User[]> {
 // ✅ Manejo de errores agregado
 export async function saveUsers(users: User[]): Promise<void> {
   try {
-    await AsyncStorage.setItem(USERS_KEY, JSON.stringify(users));
+    await platformStorage.setItem(USERS_KEY, JSON.stringify(users));
   } catch (error) {
     console.error("Error al guardar usuarios:", error);
     throw new Error("No se pudo guardar el usuario");

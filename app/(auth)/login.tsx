@@ -1,14 +1,13 @@
 import { useRouter } from "expo-router";
 import { useContext, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { COLORS, FONT_SIZE, SPACING } from "../../src/constants/theme";
 import { AuthContext } from "../../src/contexts/AuthContext";
@@ -25,7 +24,7 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     // Validaciones
     if (!email.trim() || !password.trim()) {
-      Alert.alert("Error", "Todos los campos son obligatorios");
+      showAlert("Error", "Todos los campos son obligatorios");
       return;
     }
 
@@ -34,7 +33,7 @@ export default function LoginScreen() {
       const user = await loginUser(email, password);
       await login(user);
     } catch (e: any) {
-      Alert.alert("Error", e.message);
+      showAlert("Error", e.message);
     } finally {
       setIsLoading(false);
     }

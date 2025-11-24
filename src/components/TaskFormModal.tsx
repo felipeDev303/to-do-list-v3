@@ -4,7 +4,6 @@ import * as Location from "expo-location";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Image,
   Modal,
   StyleSheet,
@@ -15,6 +14,7 @@ import {
 } from "react-native";
 import { COLORS, FONT_SIZE, SPACING } from "../constants/theme";
 import { TodoLocation } from "../contexts/TodoReducer";
+import { showAlert } from "../utils/alert";
 
 interface Props {
   visible: boolean;
@@ -40,7 +40,7 @@ export default function TaskFormModal({ visible, onClose, onSubmit }: Props) {
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
-      Alert.alert("Permiso denegado", "Necesitamos acceso a tu galería.");
+      showAlert("Permiso denegado", "Necesitamos acceso a tu galería.");
       return;
     }
 
@@ -59,7 +59,7 @@ export default function TaskFormModal({ visible, onClose, onSubmit }: Props) {
   const takePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
-      Alert.alert("Permiso denegado", "Necesitamos acceso a tu cámara.");
+      showAlert("Permiso denegado", "Necesitamos acceso a tu cámara.");
       return;
     }
 
@@ -79,7 +79,7 @@ export default function TaskFormModal({ visible, onClose, onSubmit }: Props) {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        Alert.alert("Permiso denegado", "Necesitamos acceso a tu ubicación.");
+        showAlert("Permiso denegado", "Necesitamos acceso a tu ubicación.");
         return;
       }
 
@@ -106,7 +106,7 @@ export default function TaskFormModal({ visible, onClose, onSubmit }: Props) {
         address: address.trim() || "Ubicación detectada",
       });
     } catch (error) {
-      Alert.alert("Error", "No pudimos obtener tu ubicación.");
+      showAlert("Error", "No pudimos obtener tu ubicación.");
     } finally {
       setLoadingLocation(false);
     }
@@ -114,7 +114,7 @@ export default function TaskFormModal({ visible, onClose, onSubmit }: Props) {
 
   const handleSubmit = () => {
     if (!text.trim()) {
-      Alert.alert("Error", "El título es obligatorio.");
+      showAlert("Error", "El título es obligatorio.");
       return;
     }
     onSubmit(text, image, location);

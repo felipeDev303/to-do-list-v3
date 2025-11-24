@@ -2,7 +2,6 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
     ActivityIndicator,
-    Alert,
     StatusBar,
     StyleSheet,
     Text,
@@ -23,26 +22,26 @@ export default function RegisterScreen() {
   async function handleRegister() {
     // Validaciones
     if (!email.trim() || !password.trim() || !confirmPassword.trim()) {
-      Alert.alert("Error", "Todos los campos son obligatorios");
+      showAlert("Error", "Todos los campos son obligatorios");
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert("Error", "Las contraseñas no coinciden");
+      showAlert("Error", "Las contraseñas no coinciden");
       return;
     }
 
     setIsLoading(true);
     try {
       await registerUser(email, password);
-      Alert.alert("Éxito", "Usuario creado correctamente", [
+      showAlert("Éxito", "Usuario creado correctamente", [
         {
           text: "OK",
           onPress: () => router.replace("/(auth)/login"),
         },
       ]);
     } catch (e: any) {
-      Alert.alert("Error", e.message);
+      showAlert("Error", e.message);
     } finally {
       setIsLoading(false);
     }

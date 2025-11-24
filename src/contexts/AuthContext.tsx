@@ -1,5 +1,5 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createContext, useEffect, useState } from "react";
+import platformStorage from "../services/platformStorage";
 import { User } from "../services/users";
 
 type UserWithoutPassword = Omit<User, "password">;
@@ -30,14 +30,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function loadSession() {
     try {
-      const data = await AsyncStorage.getItem(SESSION_KEY);
+      const data = await platformStorage.getItem(SESSION_KEY);
       if (data) {
         const parsedUser = JSON.parse(data);
         setUser(parsedUser);
       }
     } catch (error) {
       console.error("Error al cargar sesión:", error);
-      await AsyncStorage.removeItem(SESSION_KEY);
+      await platformStorage.removeItem(SESSION_KEY);
     } finally {
       setIsLoading(false);
     }
@@ -50,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         "password" in u ? (({ password, ...rest }) => rest)(u) : u;
 
       setUser(userWithoutPassword);
-      await AsyncStorage.setItem(
+      await platformStorage.setItem(
         SESSION_KEY,
         JSON.stringify(userWithoutPassword)
       );
@@ -63,7 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function logout() {
     try {
       setUser(null);
-      await AsyncStorage.removeItem(SESSION_KEY);
+      await platformStorage.removeItem(SESSION_KEY);
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
       throw new Error("No se pudo cerrar sesión");
