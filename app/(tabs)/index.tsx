@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
-    padding: SPACING.m,
+    paddingHorizontal: SPACING.m,
   },
   listContent: {
     paddingBottom: 100, // Space for FAB

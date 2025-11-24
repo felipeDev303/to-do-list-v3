@@ -19,14 +19,8 @@ function RootLayoutNav() {
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      {!user ? (
-        <>
-          <Stack.Screen name="(auth)/login" />
-          <Stack.Screen name="(auth)/register" />
-        </>
-      ) : (
-        <Stack.Screen name="(tabs)" />
-      )}
+      <Stack.Screen name="(auth)" />
+      <Stack.Screen name="(tabs)" />
     </Stack>
   );
 }
