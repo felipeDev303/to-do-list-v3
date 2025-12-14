@@ -28,7 +28,8 @@ const SESSION_KEY = "AUTH_SESSION";
 const TOKEN_KEY = "AUTH_TOKEN";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<UserWithoutPassword | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -37,40 +38,86 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function loadSession() {
     try {
-      const data = await platformStorage.getItem(SESSION_KEY);
-      if (data) {
-        const parsedUser = JSON.parse(data);
-        setUser(parsedUser);
+      const savedToken = await platformStorage.getItem(TOKEN_KEY);
+      const savedUser = await platformStorage.getItem(SESSION_KEY);
+
+      if (savedToken && savedUser) {
+        setToken(savedToken);
+        setUser(JSON.parse(savedUser));
       }
     } catch (error) {
       console.error("Error al cargar sesión:", error);
       await platformStorage.removeItem(SESSION_KEY);
+      await platformStorage.removeItem(TOKEN_KEY);
     } finally {
       setIsLoading(false);
     }
   }
 
-  async function login(u: User | UserWithoutPassword) {
+  async function login(email: string, password: string) {
     try {
-      // Si tiene password, la eliminamos; si no, usamos el objeto tal cual
-      const userWithoutPassword =
-        "password" in u ? (({ password, ...rest }) => rest)(u) : u;
+      setIsLoading(true);
+      const authService = getAuthService();
+      const response = await authService.login({ email, password });
 
-      setUser(userWithoutPassword);
-      await platformStorage.setItem(
-        SESSION_KEY,
-        JSON.stringify(userWithoutPassword)
-      );
+      if (response?.data) {
+        const userData: AuthUser = {
+          userId: response.data.userId,
+          token: response.data.token,
+        };
+
+        setUser(userData);
+        setToken(response.data.token);
+
+        await platformStorage.setItem(TOKEN_KEY, response.data.token);
+        await platformStorage.setItem(SESSION_KEY, JSON.stringify(userData));
+      }
     } catch (error) {
-      console.error("Error al guardar sesión:", error);
-      throw new Error("No se pudo iniciar sesión");
+      console.error("Error al iniciar sesión:", error);
+      if (error instanceof Error) {
+        showAlert("Error", error.message);
+      }
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function register(email: string, password: string) {
+    try {
+      setIsLoading(true);
+      const authService = getAuthService();
+      const response = await authService.register({ email, password });
+
+      if (response?.data) {
+        const userData: AuthUser = {
+          userId: response.data.userId,
+          token: response.data.token,
+        };
+
+        setUser(userData);
+        setToken(response.data.token);
+
+        await platformStorage.setItem(TOKEN_KEY, response.data.token);
+        await platformStorage.setItem(SESSION_KEY, JSON.stringify(userData));
+      }
+    } catch (error) {
+      console.error("Error al registrar:", error);
+      if (error instanceof Error) {
+        showAlert("Error", error.message);
+      }
+      throw error;
+    } finally {
+      setIsLoading(false);
     }
   }
 
   async function logout() {
     try {
       setUser(null);
+      setToken(null);
       await platformStorage.removeItem(SESSION_KEY);
+      await platformStorage.removeItem(TOKEN_KEY);
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
       throw new Error("No se pudo cerrar sesión");
@@ -78,7 +125,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+    <AuthContext.Provider
+      value={{ user, token, login, register, logout, isLoading }}
+    >
       {children}
     </AuthContext.Provider>
   );
