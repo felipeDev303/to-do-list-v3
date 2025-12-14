@@ -1,7 +1,3 @@
-import { v4 as uuidv4 } from "uuid";
-
-export type TaskStatus = "pending" | "in-progress" | "completed";
-
 export type TodoLocation = {
   latitude: number;
   longitude: number;
@@ -9,26 +5,22 @@ export type TodoLocation = {
 };
 
 export type Todo = {
-  id: string; // Identificador único
-  text: string; // Descripción de la tarea
-  status: TaskStatus; // Estado de la tarea
-  imageUri?: string; // URI de la imagen adjunta
-  location?: TodoLocation; // Ubicación de la tarea
-  createdAt: number;
+  _id: string;
+  title: string;
+  completed: boolean;
+  imageUrl?: string;
+  location?: TodoLocation;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type TodoAction =
-  | { 
-      type: "ADD"; 
-      payload: { 
-        text: string; 
-        imageUri?: string; 
-        location?: TodoLocation 
-      } 
-    }
-  | { type: "SET_STATUS"; payload: { id: string; status: TaskStatus } }
+  | { type: "SET"; payload: Todo[] }
+  | { type: "ADD"; payload: Todo }
+  | { type: "UPDATE"; payload: Todo }
   | { type: "DELETE"; payload: string }
-  | { type: "SET"; payload: Todo[] };
+  | { type: "TOGGLE_COMPLETED"; payload: { id: string; completed: boolean } };
 
 export const todoReducer = (state: Todo[], action: TodoAction): Todo[] => {
   switch (action.type) {
@@ -36,25 +28,22 @@ export const todoReducer = (state: Todo[], action: TodoAction): Todo[] => {
       return action.payload;
 
     case "ADD":
-      return [
-        {
-          id: uuidv4(),
-          text: action.payload.text,
-          status: "pending",
-          imageUri: action.payload.imageUri,
-          location: action.payload.location,
-          createdAt: Date.now(),
-        },
-        ...state,
-      ];
+      return [action.payload, ...state];
 
-    case "SET_STATUS":
+    case "UPDATE":
       return state.map((t) =>
-        t.id === action.payload.id ? { ...t, status: action.payload.status } : t
+        t._id === action.payload._id ? action.payload : t
+      );
+
+    case "TOGGLE_COMPLETED":
+      return state.map((t) =>
+        t._id === action.payload.id
+          ? { ...t, completed: action.payload.completed }
+          : t
       );
 
     case "DELETE":
-      return state.filter((t) => t.id !== action.payload);
+      return state.filter((t) => t._id !== action.payload);
 
     default:
       return state;

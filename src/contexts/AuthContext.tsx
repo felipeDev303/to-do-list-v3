@@ -1,24 +1,33 @@
 import { createContext, useEffect, useState } from "react";
+import getAuthService from "../../services/auth-service";
 import platformStorage from "../services/platformStorage";
-import { User } from "../services/users";
+import { showAlert } from "../utils/alert";
 
-type UserWithoutPassword = Omit<User, "password">;
+type AuthUser = {
+  userId: string;
+  token: string;
+};
 
 type AuthContextType = {
-  user: UserWithoutPassword | null;
-  login: (u: User | UserWithoutPassword) => Promise<void>;
+  user: AuthUser | null;
+  token: string | null;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   isLoading: boolean;
 };
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
+  token: null,
   login: async () => {},
+  register: async () => {},
   logout: async () => {},
   isLoading: true,
 });
 
-const SESSION_KEY = "SESSION";
+const SESSION_KEY = "AUTH_SESSION";
+const TOKEN_KEY = "AUTH_TOKEN";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserWithoutPassword | null>(null);
