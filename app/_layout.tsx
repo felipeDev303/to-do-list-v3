@@ -1,5 +1,5 @@
-import { Redirect, Stack } from "expo-router";
-import { useContext } from "react";
+import { Slot, useRouter, useSegments } from "expo-router";
+import { useContext, useEffect } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import "react-native-get-random-values";
 import { AuthContext, AuthProvider } from "../src/contexts/AuthContext";
@@ -7,6 +7,22 @@ import { TodoProvider } from "../src/contexts/TodoContext";
 
 function RootLayoutNav() {
   const { user, isLoading } = useContext(AuthContext);
+  const segments = useSegments();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    const inAuthGroup = segments[0] === "(auth)";
+
+    if (!user && !inAuthGroup) {
+      // Redirect al login si no hay usuario
+      router.replace("/(auth)/login");
+    } else if (user && inAuthGroup) {
+      // Redirect a tabs si ya hay usuario
+      router.replace("/(tabs)");
+    }
+  }, [user, isLoading, segments, router]);
 
   if (isLoading) {
     return (
@@ -17,17 +33,15 @@ function RootLayoutNav() {
     );
   }
 
-  // Si no hay usuario autenticado, redirigir a login
+  // Renderizar las rutas sin TodoProvider hasta que esté autenticado
   if (!user) {
-    return <Redirect href="/(auth)/login" />;
+    return <Slot />;
   }
 
   // Solo montar TodoProvider cuando hay usuario autenticado
   return (
     <TodoProvider>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(tabs)" />
-      </Stack>
+      <Slot />
     </TodoProvider>
   );
 }
