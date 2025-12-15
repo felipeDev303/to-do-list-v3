@@ -63,7 +63,7 @@ export default function Home() {
       try {
         await createTodo({
           title: text,
-          imageUrl: imageUri,
+          photoUri: imageUri,
           location,
         });
       } catch (error) {
@@ -122,14 +122,14 @@ export default function Home() {
       ) : (
         <FlatList
           data={filteredTodos}
-          keyExtractor={(item) => item._id}
+          keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <TaskItem
               item={item}
               onToggleCompleted={() =>
-                handleToggleCompleted(item._id, item.completed)
+                handleToggleCompleted(item.id, item.completed)
               }
-              onDelete={() => handleDelete(item._id)}
+              onDelete={() => handleDelete(item.id)}
             />
           )}
           contentContainerStyle={styles.listContent}

@@ -9,10 +9,10 @@ export interface TodoLocation {
 }
 
 export interface Todo {
-  _id: string;
+  id: string;
   title: string;
   completed: boolean;
-  imageUrl?: string;
+  photoUri?: string;
   location?: TodoLocation;
   userId: string;
   createdAt: string;
@@ -21,20 +21,21 @@ export interface Todo {
 
 export interface CreateTodoPayload {
   title: string;
-  imageUrl?: string;
+  photoUri?: string;
   location?: TodoLocation;
 }
 
 export interface UpdateTodoPayload {
   title?: string;
   completed?: boolean;
-  imageUrl?: string;
+  photoUri?: string;
   location?: TodoLocation;
 }
 
 export interface TodosResponse {
   success: boolean;
   data: Todo[];
+  count: number;
 }
 
 export interface TodoResponse {
@@ -101,7 +102,7 @@ export default function getTodosService(token: string) {
     try {
       console.log("📝 Creando tarea:", {
         title: payload.title,
-        hasImage: !!payload.imageUrl,
+        hasImage: !!payload.photoUri,
         hasLocation: !!payload.location,
       });
       const response = await apiClient.post<TodoResponse>("/", payload);

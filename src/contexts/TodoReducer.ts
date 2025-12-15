@@ -5,10 +5,10 @@ export type TodoLocation = {
 };
 
 export type Todo = {
-  _id: string;
+  id: string;
   title: string;
   completed: boolean;
-  imageUrl?: string;
+  photoUri?: string;
   location?: TodoLocation;
   userId: string;
   createdAt: string;
@@ -32,7 +32,7 @@ export const todoReducer = (state: Todo[], action: TodoAction): Todo[] => {
 
     case "UPDATE":
       return state.map((t) =>
-        t._id === action.payload._id ? action.payload : t
+        t.id === action.payload.id ? action.payload : t
       );
 
     case "TOGGLE_COMPLETED":
@@ -43,7 +43,7 @@ export const todoReducer = (state: Todo[], action: TodoAction): Todo[] => {
       );
 
     case "DELETE":
-      return state.filter((t) => t._id !== action.payload);
+      return state.filter((t) => t.id !== action.payload);
 
     default:
       return state;

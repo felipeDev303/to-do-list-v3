@@ -17,9 +17,9 @@ function TaskItem({ item, onToggleCompleted, onDelete }: Props) {
       </Text>
 
       {/* Mostrar imagen si existe */}
-      {item.imageUrl && (
+      {item.photoUri && (
         <Image
-          source={{ uri: item.imageUrl }}
+          source={{ uri: item.photoUri }}
           style={styles.image}
           resizeMode="cover"
         />

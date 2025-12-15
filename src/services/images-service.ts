@@ -5,8 +5,10 @@ import { API_URL } from "../constants/config";
 export interface ImageUploadResponse {
   success: boolean;
   data: {
-    imageUrl: string;
-    imageId: string;
+    url: string;
+    key: string;
+    size: number;
+    contentType: string;
   };
 }
 
@@ -50,7 +52,7 @@ export default function getImagesService(token: string) {
         }
       );
 
-      return response.data.data.imageUrl;
+      return response.data.data.url;
     } catch (error) {
       if (isAxiosError(error) && error.response) {
         if (error.response.status === 401) {
