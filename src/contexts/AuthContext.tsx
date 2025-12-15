@@ -1,5 +1,7 @@
 import { createContext, useEffect, useState } from "react";
+import getAuthService from "../../services/auth-service";
 import platformStorage from "../services/platformStorage";
+import { showAlert } from "../utils/alert";
 
 type AuthUser = {
   userId: string;

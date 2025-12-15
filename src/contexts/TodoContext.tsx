@@ -1,6 +1,7 @@
 import {
   createContext,
   useCallback,
+  useContext,
   useEffect,
   useReducer,
   useState,
@@ -9,8 +10,8 @@ import getTodosService, {
   CreateTodoPayload,
   UpdateTodoPayload,
 } from "../../services/todos-service";
-import { useAuth } from "../hooks/useAuth";
 import { showAlert } from "../utils/alert";
+import { AuthContext } from "./AuthContext";
 import { Todo, TodoAction, todoReducer } from "./TodoReducer";
 
 type TodoContextType = {
@@ -31,7 +32,7 @@ export const TodoContext = createContext<TodoContextType | undefined>(
 export function TodoProvider({ children }: { children: React.ReactNode }) {
   const [todos, dispatch] = useReducer(todoReducer, []);
   const [isLoading, setIsLoading] = useState(false);
-  const { token, logout } = useAuth();
+  const { token, logout } = useContext(AuthContext);
 
   useEffect(() => {
     if (token) {
