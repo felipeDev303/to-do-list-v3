@@ -75,17 +75,26 @@ export function TodoProvider({ children }: { children: React.ReactNode }) {
       try {
         setIsLoading(true);
 
-        // Si hay una imagen local (URI del dispositivo), subirla primero
+        // Si hay una imagen local (URI del dispositivo), intentar subirla
         let finalPayload = { ...payload };
 
         if (payload.imageUrl && payload.imageUrl.startsWith("file://")) {
-          console.log("📤 Subiendo imagen al servidor...");
-          const imagesService = getImagesService(token);
-          const uploadedImageUrl = await imagesService.uploadImage(
-            payload.imageUrl
-          );
-          console.log("✅ Imagen subida:", uploadedImageUrl);
-          finalPayload.imageUrl = uploadedImageUrl;
+          try {
+            console.log("📤 Subiendo imagen al servidor...");
+            const imagesService = getImagesService(token);
+            const uploadedImageUrl = await imagesService.uploadImage(
+              payload.imageUrl
+            );
+            console.log("✅ Imagen subida:", uploadedImageUrl);
+            finalPayload.imageUrl = uploadedImageUrl;
+          } catch (imageError) {
+            console.warn(
+              "⚠️ Error al subir imagen, continuando sin ella:",
+              imageError
+            );
+            // Si falla la subida de imagen, crear tarea sin imagen
+            finalPayload.imageUrl = undefined;
+          }
         }
 
         const todosService = getTodosService(token);

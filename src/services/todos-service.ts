@@ -43,6 +43,10 @@ export interface TodoResponse {
 }
 
 export default function getTodosService(token: string) {
+  console.log(
+    "🔧 Inicializando servicio de todos con URL:",
+    `${API_URL}/todos`
+  );
   const apiClient = axios.create({
     baseURL: `${API_URL}/todos`,
     headers: {
@@ -95,22 +99,38 @@ export default function getTodosService(token: string) {
 
   async function createTodo(payload: CreateTodoPayload) {
     try {
+      console.log("📝 Creando tarea:", {
+        title: payload.title,
+        hasImage: !!payload.imageUrl,
+        hasLocation: !!payload.location,
+      });
       const response = await apiClient.post<TodoResponse>("/", payload);
+      console.log("✅ Tarea creada exitosamente");
       return response.data.data;
     } catch (error) {
       if (isAxiosError(error) && error.response) {
+        console.error(
+          "❌ Error del servidor:",
+          error.response.status,
+          error.response.data
+        );
         if (error.response.status === 401) {
           throw new ServiceError(
             "Sesión expirada. Por favor, inicia sesión nuevamente"
           );
         } else if (error.response.status === 400) {
           throw new ServiceError("Datos inválidos. El título es requerido");
+        } else if (error.response.status === 404) {
+          throw new ServiceError(
+            "Endpoint no encontrado. Verifica la URL del backend"
+          );
         } else {
           throw new ServiceError(
             `Error al crear la tarea: ${error.response.status}`
           );
         }
       }
+      console.error("❌ Error de conexión:", error);
       throw new ServiceError("Error de conexión al servidor");
     }
   }
