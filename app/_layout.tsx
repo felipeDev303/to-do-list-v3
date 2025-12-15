@@ -22,19 +22,20 @@ function RootLayoutNav() {
     return <Redirect href="/(auth)/login" />;
   }
 
+  // Solo montar TodoProvider cuando hay usuario autenticado
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(tabs)" />
-    </Stack>
+    <TodoProvider>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(tabs)" />
+      </Stack>
+    </TodoProvider>
   );
 }
 
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <TodoProvider>
-        <RootLayoutNav />
-      </TodoProvider>
+      <RootLayoutNav />
     </AuthProvider>
   );
 }

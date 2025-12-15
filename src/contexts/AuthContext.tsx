@@ -34,11 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    loadSession();
-  }, []);
-
-  async function loadSession() {
+  const loadSession = useCallback(async () => {
     console.log("🔄 Cargando sesión...");
     try {
       const savedToken = await platformStorage.getItem(TOKEN_KEY);
@@ -66,7 +62,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log("✅ Loading completado, isLoading = false");
       setIsLoading(false);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    loadSession();
+  }, [loadSession]);
 
   const login = useCallback(async (email: string, password: string) => {
     try {
