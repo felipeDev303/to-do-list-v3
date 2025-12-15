@@ -1,8 +1,11 @@
 import { useCallback, useMemo, useState } from "react";
 import {
-    FlatList,
-    StatusBar,
-    StyleSheet
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  StatusBar,
+  StyleSheet,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import EmptyState from "../../src/components/EmptyState";
@@ -10,76 +13,136 @@ import FloatingButton from "../../src/components/FloatingButton";
 import Header from "../../src/components/Header";
 import SearchBar from "../../src/components/SearchBar";
 import SegmentedControl from "../../src/components/SegmentedControl";
-import StatusFilter from "../../src/components/StatusFilter";
 import TaskFormModal from "../../src/components/TaskFormModal";
 import TaskItem from "../../src/components/TaskItem";
 import { COLORS, SPACING } from "../../src/constants/theme";
-import { TaskStatus, TodoLocation } from "../../src/contexts/TodoReducer";
+import { TodoLocation } from "../../src/contexts/TodoReducer";
 import { useTodos } from "../../src/hooks/useTodos";
 
 export default function Home() {
-  const { todos, dispatch } = useTodos();
+  const {
+    todos,
+    isLoading,
+    fetchTodos,
+    createTodo,
+    toggleCompleted,
+    deleteTodo,
+  } = useTodos();
   const [view, setView] = useState<"Calendario" | "Notas">("Notas");
   const [searchText, setSearchText] = useState("");
-  const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "completed" | "pending"
+  >("all");
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Filter logic
   const filteredTodos = useMemo(() => {
     return todos.filter((todo) => {
-      const matchesSearch = todo.text.toLowerCase().includes(searchText.toLowerCase());
-      const matchesStatus = statusFilter === "all" ? true : todo.status === statusFilter;
+      const matchesSearch = todo.title
+        .toLowerCase()
+        .includes(searchText.toLowerCase());
+      const matchesStatus =
+        statusFilter === "all"
+          ? true
+          : statusFilter === "completed"
+          ? todo.completed
+          : !todo.completed;
       return matchesSearch && matchesStatus;
     });
   }, [todos, searchText, statusFilter]);
 
-  const handleAdd = useCallback((text: string, imageUri?: string, location?: TodoLocation) => {
-    dispatch({ 
-      type: "ADD", 
-      payload: { text, imageUri, location } 
-    });
-  }, [dispatch]);
+  const handleAdd = useCallback(
+    async (text: string, imageUri?: string, location?: TodoLocation) => {
+      try {
+        await createTodo({
+          title: text,
+          imageUrl: imageUri,
+          location,
+        });
+      } catch (error) {
+        console.error("Error al crear tarea:", error);
+      }
+    },
+    [createTodo]
+  );
+
+  const handleToggleCompleted = useCallback(
+    async (id: string, completed: boolean) => {
+      try {
+        await toggleCompleted(id, !completed);
+      } catch (error) {
+        console.error("Error al cambiar estado:", error);
+      }
+    },
+    [toggleCompleted]
+  );
 
   const handleDelete = useCallback(
-    (id: string) => {
-      dispatch({ type: "DELETE", payload: id });
+    async (id: string) => {
+      try {
+        await deleteTodo(id);
+      } catch (error) {
+        console.error("Error al eliminar tarea:", error);
+      }
     },
-    [dispatch]
+    [deleteTodo]
   );
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchTodos();
+    setRefreshing(false);
+  }, [fetchTodos]);
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
       <Header />
-      
+
       <SegmentedControl selected={view} onSelect={setView} />
-      
+
       <SearchBar value={searchText} onChangeText={setSearchText} />
 
-      <StatusFilter selected={statusFilter} onSelect={setStatusFilter} />
+      <View style={styles.filterContainer}>
+        {/* Simplified filter - you can expand this */}
+      </View>
 
-      <FlatList
-        data={filteredTodos}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TaskItem
-            item={item}
-            onChangeStatus={(status) => 
-              dispatch({ type: "SET_STATUS", payload: { id: item.id, status } })
-            }
-            onDelete={() => handleDelete(item.id)}
-          />
-        )}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={<EmptyState message="No se encontraron notas" emoji="🌑" />}
-      />
+      {isLoading && !refreshing && todos.length === 0 ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+        </View>
+      ) : (
+        <FlatList
+          data={filteredTodos}
+          keyExtractor={(item) => item._id}
+          renderItem={({ item }) => (
+            <TaskItem
+              item={item}
+              onToggleCompleted={() =>
+                handleToggleCompleted(item._id, item.completed)
+              }
+              onDelete={() => handleDelete(item._id)}
+            />
+          )}
+          contentContainerStyle={styles.listContent}
+          ListEmptyComponent={<EmptyState message="No hay tareas" emoji="📝" />}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={COLORS.primary}
+            />
+          }
+        />
+      )}
 
       <FloatingButton onPress={() => setIsModalVisible(true)} />
 
-      <TaskFormModal 
-        visible={isModalVisible} 
-        onClose={() => setIsModalVisible(false)} 
-        onSubmit={handleAdd} 
+      <TaskFormModal
+        visible={isModalVisible}
+        onClose={() => setIsModalVisible(false)}
+        onSubmit={handleAdd}
       />
     </SafeAreaView>
   );
@@ -94,5 +157,13 @@ const styles = StyleSheet.create({
   listContent: {
     paddingBottom: 100, // Space for FAB
     gap: SPACING.s,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  filterContainer: {
+    marginBottom: SPACING.s,
   },
 });

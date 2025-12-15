@@ -1,20 +1,20 @@
 import { useRouter } from "expo-router";
 import { useContext, useState } from "react";
 import {
-    ActivityIndicator,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { COLORS, FONT_SIZE, SPACING } from "../../src/constants/theme";
 import { AuthContext } from "../../src/contexts/AuthContext";
-import { loginUser } from "../../src/services/users";
+import { showAlert } from "../../src/utils/alert";
 
 export default function LoginScreen() {
-  const { login } = useContext(AuthContext);
+  const { login, isLoading: authLoading } = useContext(AuthContext);
   const router = useRouter();
 
   const [email, setEmail] = useState("");
@@ -28,12 +28,18 @@ export default function LoginScreen() {
       return;
     }
 
+    if (password.length < 6) {
+      showAlert("Error", "La contraseña debe tener al menos 6 caracteres");
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const user = await loginUser(email, password);
-      await login(user);
+      await login(email.trim(), password);
+      router.replace("/(tabs)");
     } catch (e: any) {
-      showAlert("Error", e.message);
+      // El error ya se muestra en el AuthContext
+      console.error("Error en login:", e);
     } finally {
       setIsLoading(false);
     }
@@ -87,7 +93,7 @@ export default function LoginScreen() {
       </TouchableOpacity>
 
       <Text style={styles.hint}>
-        Demo: cualquier email / mínimo 6 caracteres
+        Usa tu email y contraseña (mínimo 6 caracteres)
       </Text>
     </View>
   );

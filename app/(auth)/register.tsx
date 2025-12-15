@@ -1,18 +1,20 @@
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import {
-    ActivityIndicator,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { COLORS, FONT_SIZE, SPACING } from "../../src/constants/theme";
-import { registerUser } from "../../src/services/users";
+import { AuthContext } from "../../src/contexts/AuthContext";
+import { showAlert } from "../../src/utils/alert";
 
 export default function RegisterScreen() {
+  const { register } = useContext(AuthContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -26,6 +28,11 @@ export default function RegisterScreen() {
       return;
     }
 
+    if (password.length < 6) {
+      showAlert("Error", "La contraseña debe tener al menos 6 caracteres");
+      return;
+    }
+
     if (password !== confirmPassword) {
       showAlert("Error", "Las contraseñas no coinciden");
       return;
@@ -33,15 +40,11 @@ export default function RegisterScreen() {
 
     setIsLoading(true);
     try {
-      await registerUser(email, password);
-      showAlert("Éxito", "Usuario creado correctamente", [
-        {
-          text: "OK",
-          onPress: () => router.replace("/(auth)/login"),
-        },
-      ]);
+      await register(email.trim(), password);
+      router.replace("/(tabs)");
     } catch (e: any) {
-      showAlert("Error", e.message);
+      // El error ya se muestra en el AuthContext
+      console.error("Error en registro:", e);
     } finally {
       setIsLoading(false);
     }

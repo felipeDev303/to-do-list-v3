@@ -1,27 +1,25 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { memo } from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { TaskStatus, Todo } from "../contexts/TodoReducer";
+import { Todo } from "../contexts/TodoReducer";
 
 type Props = {
   item: Todo;
-  onChangeStatus: (status: TaskStatus) => void;
+  onToggleCompleted: () => void;
   onDelete: () => void;
 };
 
-function TaskItem({ item, onChangeStatus, onDelete }: Props) {
+function TaskItem({ item, onToggleCompleted, onDelete }: Props) {
   return (
     <View style={styles.container}>
-      <Text
-        style={[styles.text, item.status === "completed" && styles.completed]}
-      >
-        {item.text}
+      <Text style={[styles.text, item.completed && styles.completed]}>
+        {item.title}
       </Text>
 
       {/* Mostrar imagen si existe */}
-      {item.imageUri && (
-        <Image 
-          source={{ uri: item.imageUri }} 
+      {item.imageUrl && (
+        <Image
+          source={{ uri: item.imageUrl }}
           style={styles.image}
           resizeMode="cover"
         />
@@ -32,31 +30,26 @@ function TaskItem({ item, onChangeStatus, onDelete }: Props) {
         <View style={styles.locationContainer}>
           <Ionicons name="location" size={16} color="#007AFF" />
           <Text style={styles.locationText}>
-            {item.location.address || 
-              `${item.location.latitude.toFixed(4)}, ${item.location.longitude.toFixed(4)}`}
+            {item.location.address ||
+              `${item.location.latitude.toFixed(
+                4
+              )}, ${item.location.longitude.toFixed(4)}`}
           </Text>
         </View>
       )}
 
       <View style={styles.buttons}>
-        <StatusButton
-          emoji="🟡"
-          status="pending"
-          currentStatus={item.status}
-          onPress={() => onChangeStatus("pending")}
-        />
-        <StatusButton
-          emoji="🔵"
-          status="in-progress"
-          currentStatus={item.status}
-          onPress={() => onChangeStatus("in-progress")}
-        />
-        <StatusButton
-          emoji="🟢"
-          status="completed"
-          currentStatus={item.status}
-          onPress={() => onChangeStatus("completed")}
-        />
+        <TouchableOpacity
+          style={[
+            styles.statusButton,
+            item.completed && styles.completedButton,
+          ]}
+          onPress={onToggleCompleted}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.emoji}>{item.completed ? "✅" : "⭕"}</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity
           style={[styles.statusButton, styles.deleteButton]}
           onPress={onDelete}
@@ -68,28 +61,20 @@ function TaskItem({ item, onChangeStatus, onDelete }: Props) {
   );
 }
 
-// Componente auxiliar para botones de estado
+// Componente auxiliar para botones de estado (ya no necesario, pero lo dejo por si acaso)
 const StatusButton = memo(
   ({
     emoji,
-    status,
-    currentStatus,
+    isActive,
     onPress,
   }: {
     emoji: string;
-    status: TaskStatus;
-    currentStatus: TaskStatus;
+    isActive: boolean;
     onPress: () => void;
   }) => {
-    const isActive = currentStatus === status;
-
     return (
       <TouchableOpacity
-        style={[
-          styles.statusButton,
-          isActive && styles.statusButtonActive,
-          isActive && styles[`${status}Active`],
-        ]}
+        style={[styles.statusButton, isActive && styles.statusButtonActive]}
         onPress={onPress}
         activeOpacity={0.7}
       >
@@ -163,20 +148,14 @@ const styles = StyleSheet.create({
   statusButtonActive: {
     backgroundColor: "#007AFF",
   },
+  completedButton: {
+    backgroundColor: "#32CD32",
+  },
   emoji: {
     fontSize: 18,
   },
   emojiActive: {
     transform: [{ scale: 1.2 }],
-  },
-  pendingActive: {
-    backgroundColor: "#FFD700",
-  },
-  "in-progressActive": {
-    backgroundColor: "#4169E1",
-  },
-  completedActive: {
-    backgroundColor: "#32CD32",
   },
   deleteButton: {
     backgroundColor: "#FF3B30",

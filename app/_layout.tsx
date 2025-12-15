@@ -1,4 +1,4 @@
-import { Stack } from "expo-router";
+import { Redirect, Stack } from "expo-router";
 import { useContext } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import "react-native-get-random-values";
@@ -17,9 +17,14 @@ function RootLayoutNav() {
     );
   }
 
+  // Si no hay usuario autenticado, redirigir a login
+  if (!user) {
+    return <Redirect href="/(auth)/login" />;
+  }
+
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(auth)" />
+      <Stack.Screen name="(auth)" options={{ href: null }} />
       <Stack.Screen name="(tabs)" />
     </Stack>
   );
