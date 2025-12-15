@@ -376,21 +376,25 @@ La aplicación implementa autenticación JWT completa con el backend:
 ### Flujo de Autenticación
 
 1. **Registro** (`POST /auth/register`):
+
    ```json
    {
      "email": "user@example.com",
      "password": "password123"
    }
    ```
+
    Respuesta: `{ "success": true, "data": { "token": "jwt...", "userId": "..." } }`
 
 2. **Login** (`POST /auth/login`):
+
    ```json
    {
      "email": "user@example.com",
      "password": "password123"
    }
    ```
+
    Respuesta: `{ "success": true, "data": { "token": "jwt...", "userId": "..." } }`
 
 3. **Persistencia del Token**:
@@ -417,7 +421,7 @@ export default function getAuthService() {
 
 ```typescript
 // src/constants/config.ts
-export const API_URL = 
+export const API_URL =
   process.env.EXPO_PUBLIC_API_URL || "https://todo-list.dobleb.cl";
 ```
 
@@ -430,10 +434,12 @@ EXPO_PUBLIC_API_URL=https://todo-list.dobleb.cl
 ### Endpoints Disponibles
 
 #### Autenticación
+
 - `POST /auth/register` - Registrar nuevo usuario
 - `POST /auth/login` - Iniciar sesión
 
 #### Todos (requieren autenticación)
+
 - `GET /todos` - Listar todas las tareas del usuario
 - `POST /todos` - Crear nueva tarea
 - `GET /todos/{id}` - Obtener tarea específica
@@ -442,6 +448,7 @@ EXPO_PUBLIC_API_URL=https://todo-list.dobleb.cl
 - `DELETE /todos/{id}` - Eliminar tarea
 
 #### Imágenes (requieren autenticación)
+
 - `POST /images` - Subir imagen (multipart/form-data, máx 5MB)
 - `GET /images/{userId}/{imageId}` - Descargar imagen
 - `DELETE /images/{userId}/{imageId}` - Eliminar imagen
@@ -450,17 +457,18 @@ EXPO_PUBLIC_API_URL=https://todo-list.dobleb.cl
 
 ```typescript
 interface Todo {
-  id: string;              // ID único generado por MongoDB
-  title: string;           // Descripción de la tarea
-  completed: boolean;      // Estado de completado
-  photoUri?: string;       // URL de imagen en Cloudflare R2
-  location?: {             // Ubicación opcional
+  id: string; // ID único generado por MongoDB
+  title: string; // Descripción de la tarea
+  completed: boolean; // Estado de completado
+  photoUri?: string; // URL de imagen en Cloudflare R2
+  location?: {
+    // Ubicación opcional
     latitude: number;
     longitude: number;
   };
-  userId: string;          // ID del usuario propietario
-  createdAt: string;       // ISO timestamp
-  updatedAt: string;       // ISO timestamp
+  userId: string; // ID del usuario propietario
+  createdAt: string; // ISO timestamp
+  updatedAt: string; // ISO timestamp
 }
 ```
 
@@ -482,8 +490,14 @@ export default function getTodosService(token: string) {
   async function getTodos(): Promise<Todo[]>;
   async function getTodoById(id: string): Promise<Todo>;
   async function createTodo(payload: CreateTodoPayload): Promise<Todo>;
-  async function updateTodo(id: string, payload: UpdateTodoPayload): Promise<Todo>;
-  async function patchTodo(id: string, payload: Partial<UpdateTodoPayload>): Promise<Todo>;
+  async function updateTodo(
+    id: string,
+    payload: UpdateTodoPayload
+  ): Promise<Todo>;
+  async function patchTodo(
+    id: string,
+    payload: Partial<UpdateTodoPayload>
+  ): Promise<Todo>;
   async function deleteTodo(id: string): Promise<void>;
 }
 ```
@@ -500,7 +514,10 @@ export default function getImagesService(token: string) {
     },
   });
 
-  async function uploadImage(imageUri: string, fileName?: string): Promise<string>;
+  async function uploadImage(
+    imageUri: string,
+    fileName?: string
+  ): Promise<string>;
   async function deleteImage(userId: string, imageId: string): Promise<void>;
 }
 ```
