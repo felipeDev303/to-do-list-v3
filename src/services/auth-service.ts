@@ -31,13 +31,13 @@ export interface RegisterPayload {
 export default function getAuthService() {
   console.log("🔧 Auth Service - URL:", `${API_URL}/auth`);
   const apiClient = axios.create({
-    baseURL: `${API_URL}/auth`,
+    baseURL: API_URL,
   });
 
   async function login(payload: LoginPayload) {
     try {
       console.log("🔑 Login - URL completa:", `${API_URL}/auth/login`);
-      const response = await apiClient.post("/login", payload);
+      const response = await apiClient.post("/auth/login", payload);
       return response.data as LoginResponse;
     } catch (error) {
       if (isAxiosError(error) && error.response) {
@@ -56,7 +56,7 @@ export default function getAuthService() {
   async function register(payload: RegisterPayload) {
     try {
       console.log("🔐 Register - URL completa:", `${API_URL}/auth/register`);
-      const response = await apiClient.post("/register", payload);
+      const response = await apiClient.post("/auth/register", payload);
       return response.data as RegisterResponse;
     } catch (error) {
       if (isAxiosError(error) && error.response) {

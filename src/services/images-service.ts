@@ -15,7 +15,7 @@ export interface ImageUploadResponse {
 export default function getImagesService(token: string) {
   console.log("🔧 Images Service - URL:", `${API_URL}/images`);
   const apiClient = axios.create({
-    baseURL: `${API_URL}/images`,
+    baseURL: API_URL,
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -44,7 +44,7 @@ export default function getImagesService(token: string) {
       formData.append("image", file);
 
       const response = await apiClient.post<ImageUploadResponse>(
-        "/",
+        "/images",
         formData,
         {
           headers: {
@@ -81,7 +81,7 @@ export default function getImagesService(token: string) {
    */
   async function deleteImage(userId: string, imageId: string): Promise<void> {
     try {
-      await apiClient.delete(`/${userId}/${imageId}`);
+      await apiClient.delete(`/images/${userId}/${imageId}`);
     } catch (error) {
       if (isAxiosError(error) && error.response) {
         if (error.response.status === 404) {

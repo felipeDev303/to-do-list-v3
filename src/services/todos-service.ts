@@ -49,7 +49,7 @@ export default function getTodosService(token: string) {
     `${API_URL}/todos`
   );
   const apiClient = axios.create({
-    baseURL: `${API_URL}/todos`,
+    baseURL: API_URL,
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
@@ -58,7 +58,7 @@ export default function getTodosService(token: string) {
 
   async function getTodos() {
     try {
-      const response = await apiClient.get<TodosResponse>("/");
+      const response = await apiClient.get<TodosResponse>("/todos");
       return response.data.data;
     } catch (error) {
       if (isAxiosError(error) && error.response) {
@@ -78,7 +78,7 @@ export default function getTodosService(token: string) {
 
   async function getTodoById(id: string) {
     try {
-      const response = await apiClient.get<TodoResponse>(`/${id}`);
+      const response = await apiClient.get<TodoResponse>(`/todos/${id}`);
       return response.data.data;
     } catch (error) {
       if (isAxiosError(error) && error.response) {
@@ -104,8 +104,8 @@ export default function getTodosService(token: string) {
         "📝 Creando tarea con payload:",
         JSON.stringify(payload, null, 2)
       );
-      console.log("📝 URL completa:", `${API_URL}/todos/`);
-      const response = await apiClient.post<TodoResponse>("/", payload);
+      console.log("📝 URL completa:", `${API_URL}/todos`);
+      const response = await apiClient.post<TodoResponse>("/todos", payload);
       console.log("✅ Tarea creada exitosamente:", response.data);
       return response.data.data;
     } catch (error) {
@@ -138,7 +138,10 @@ export default function getTodosService(token: string) {
 
   async function updateTodo(id: string, payload: UpdateTodoPayload) {
     try {
-      const response = await apiClient.put<TodoResponse>(`/${id}`, payload);
+      const response = await apiClient.put<TodoResponse>(
+        `/todos/${id}`,
+        payload
+      );
       return response.data.data;
     } catch (error) {
       if (isAxiosError(error) && error.response) {
@@ -160,7 +163,10 @@ export default function getTodosService(token: string) {
 
   async function patchTodo(id: string, payload: Partial<UpdateTodoPayload>) {
     try {
-      const response = await apiClient.patch<TodoResponse>(`/${id}`, payload);
+      const response = await apiClient.patch<TodoResponse>(
+        `/todos/${id}`,
+        payload
+      );
       return response.data.data;
     } catch (error) {
       if (isAxiosError(error) && error.response) {
@@ -182,7 +188,7 @@ export default function getTodosService(token: string) {
 
   async function deleteTodo(id: string) {
     try {
-      await apiClient.delete(`/${id}`);
+      await apiClient.delete(`/todos/${id}`);
     } catch (error) {
       if (isAxiosError(error) && error.response) {
         if (error.response.status === 404) {
