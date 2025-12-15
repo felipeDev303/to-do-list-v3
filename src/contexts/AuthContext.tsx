@@ -1,5 +1,5 @@
-import { createContext, useEffect, useState } from "react";
-import getAuthService from "../../services/auth-service";
+import { createContext, useCallback, useEffect, useState } from "react";
+import getAuthService from "../services/auth-service";
 import platformStorage from "../services/platformStorage";
 import { showAlert } from "../utils/alert";
 
@@ -39,32 +39,58 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   async function loadSession() {
+    console.log("🔄 Cargando sesión...");
     try {
       const savedToken = await platformStorage.getItem(TOKEN_KEY);
       const savedUser = await platformStorage.getItem(SESSION_KEY);
 
+      console.log("📦 Token guardado:", savedToken ? "Existe" : "No existe");
+      console.log("📦 Usuario guardado:", savedUser ? "Existe" : "No existe");
+
       if (savedToken && savedUser) {
         setToken(savedToken);
         setUser(JSON.parse(savedUser));
+        console.log("✅ Sesión restaurada");
+      } else {
+        console.log("❌ No hay sesión guardada");
       }
     } catch (error) {
-      console.error("Error al cargar sesión:", error);
-      await platformStorage.removeItem(SESSION_KEY);
-      await platformStorage.removeItem(TOKEN_KEY);
+      console.error("❌ Error al cargar sesión:", error);
+      try {
+        await platformStorage.removeItem(SESSION_KEY);
+        await platformStorage.removeItem(TOKEN_KEY);
+      } catch (e) {
+        console.error("Error limpiando storage:", e);
+      }
     } finally {
+      console.log("✅ Loading completado, isLoading = false");
       setIsLoading(false);
     }
   }
 
-  async function login(email: string, password: string) {
+  const login = useCallback(async (email: string, password: string) => {
     try {
       setIsLoading(true);
       const authService = getAuthService();
       const response = await authService.login({ email, password });
 
       if (response?.data) {
+        // Extraer userId del token JWT si no viene en la respuesta
+        let userId = response.data.userId;
+        if (!userId && response.data.token) {
+          try {
+            const tokenPayload = JSON.parse(
+              atob(response.data.token.split(".")[1])
+            );
+            userId = tokenPayload.userId || tokenPayload.sub || tokenPayload.id;
+          } catch (e) {
+            console.error("Error al decodificar token:", e);
+            userId = "unknown";
+          }
+        }
+
         const userData: AuthUser = {
-          userId: response.data.userId,
+          userId: userId || "unknown",
           token: response.data.token,
         };
 
@@ -83,17 +109,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, []);
 
-  async function register(email: string, password: string) {
+  const register = useCallback(async (email: string, password: string) => {
     try {
       setIsLoading(true);
       const authService = getAuthService();
       const response = await authService.register({ email, password });
 
       if (response?.data) {
+        // Extraer userId del token JWT si no viene en la respuesta
+        let userId = response.data.userId;
+        if (!userId && response.data.token) {
+          try {
+            const tokenPayload = JSON.parse(
+              atob(response.data.token.split(".")[1])
+            );
+            userId = tokenPayload.userId || tokenPayload.sub || tokenPayload.id;
+          } catch (e) {
+            console.error("Error al decodificar token:", e);
+            userId = "unknown";
+          }
+        }
+
         const userData: AuthUser = {
-          userId: response.data.userId,
+          userId: userId || "unknown",
           token: response.data.token,
         };
 
@@ -112,9 +152,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, []);
 
-  async function logout() {
+  const logout = useCallback(async () => {
     try {
       setUser(null);
       setToken(null);
@@ -124,7 +164,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error("Error al cerrar sesión:", error);
       throw new Error("No se pudo cerrar sesión");
     }
-  }
+  }, []);
 
   return (
     <AuthContext.Provider

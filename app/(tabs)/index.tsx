@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -35,6 +35,12 @@ export default function Home() {
   >("all");
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Cargar tareas al montar el componente
+  useEffect(() => {
+    fetchTodos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Solo ejecutar al montar
 
   // Filter logic
   const filteredTodos = useMemo(() => {
@@ -93,7 +99,8 @@ export default function Home() {
     setRefreshing(true);
     await fetchTodos();
     setRefreshing(false);
-  }, [fetchTodos]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // fetchTodos es estable en el contexto
 
   return (
     <SafeAreaView style={styles.container}>

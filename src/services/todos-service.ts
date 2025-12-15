@@ -1,6 +1,6 @@
-import { API_URL } from "@/constants/config";
 import ServiceError from "@/errors/ServiceError";
 import axios, { isAxiosError } from "axios";
+import { API_URL } from "../constants/config";
 
 export interface TodoLocation {
   latitude: number;

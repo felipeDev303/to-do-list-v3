@@ -1,6 +1,6 @@
-import { API_URL } from "@/constants/config";
 import ServiceError from "@/errors/ServiceError";
 import axios, { isAxiosError } from "axios";
+import { API_URL } from "../constants/config";
 
 export interface LoginPayload {
   email: string;
@@ -11,6 +11,7 @@ export interface LoginResponse {
   success: boolean;
   data: {
     token: string;
+    userId?: string;
   };
 }
 
@@ -18,6 +19,7 @@ export interface RegisterResponse {
   success: boolean;
   data: {
     token: string;
+    userId?: string;
   };
 }
 

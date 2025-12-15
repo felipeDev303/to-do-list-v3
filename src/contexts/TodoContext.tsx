@@ -9,7 +9,7 @@ import {
 import getTodosService, {
   CreateTodoPayload,
   UpdateTodoPayload,
-} from "../../services/todos-service";
+} from "../services/todos-service";
 import { showAlert } from "../utils/alert";
 import { AuthContext } from "./AuthContext";
 import { Todo, TodoAction, todoReducer } from "./TodoReducer";
@@ -45,15 +45,20 @@ export function TodoProvider({ children }: { children: React.ReactNode }) {
   );
 
   const fetchTodos = useCallback(async () => {
-    if (!token) return;
+    if (!token) {
+      console.log("❌ No hay token, no se pueden cargar tareas");
+      return;
+    }
 
+    console.log("🔄 Cargando tareas desde el backend...");
     try {
       setIsLoading(true);
       const todosService = getTodosService(token);
       const data = await todosService.getTodos();
+      console.log("✅ Tareas cargadas:", data.length);
       dispatch({ type: "SET", payload: data });
     } catch (error) {
-      console.error("Error al cargar tareas:", error);
+      console.error("❌ Error al cargar tareas:", error);
       handleAuthError(error);
       if (error instanceof Error) {
         showAlert("Error", error.message);
@@ -69,8 +74,22 @@ export function TodoProvider({ children }: { children: React.ReactNode }) {
 
       try {
         setIsLoading(true);
+
+        // Si hay una imagen local (URI del dispositivo), subirla primero
+        let finalPayload = { ...payload };
+
+        if (payload.imageUrl && payload.imageUrl.startsWith("file://")) {
+          console.log("📤 Subiendo imagen al servidor...");
+          const imagesService = getImagesService(token);
+          const uploadedImageUrl = await imagesService.uploadImage(
+            payload.imageUrl
+          );
+          console.log("✅ Imagen subida:", uploadedImageUrl);
+          finalPayload.imageUrl = uploadedImageUrl;
+        }
+
         const todosService = getTodosService(token);
-        const newTodo = await todosService.createTodo(payload);
+        const newTodo = await todosService.createTodo(finalPayload);
         dispatch({ type: "ADD", payload: newTodo });
       } catch (error) {
         console.error("Error al crear tarea:", error);
@@ -151,11 +170,12 @@ export function TodoProvider({ children }: { children: React.ReactNode }) {
     [token, handleAuthError]
   );
 
+  // Carga manual de tareas (evita bucle infinito)
+  // Las tareas se cargarán cuando el usuario haga pull-to-refresh
+  // o cuando se monte el componente Home
   useEffect(() => {
-    if (token) {
-      fetchTodos();
-    }
-  }, [token, fetchTodos]);
+    console.log("🔄 TodoContext montado - Token:", token ? "✅" : "❌");
+  }, []);
 
   return (
     <TodoContext.Provider

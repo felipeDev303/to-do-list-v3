@@ -15,14 +15,18 @@ Una aplicación moderna de gestión de tareas (To-Do List) desarrollada con Reac
 ## 🚀 Stack Tecnológico
 
 ### React Native
+
 React Native es el framework base que permite escribir aplicaciones móviles nativas usando JavaScript y React. En este proyecto:
+
 - **Versión**: 0.81.5
 - **React**: 19.1.0
 - Se utiliza para renderizar componentes nativos de iOS y Android
 - Proporciona APIs nativas como `Image`, `FlatList`, `TextInput`, etc.
 
 ### Expo
+
 Expo es una plataforma que envuelve React Native y proporciona herramientas y servicios adicionales:
+
 - **Versión SDK**: ~54.0.25
 - **Expo Router**: Sistema de navegación basado en archivos (file-based routing)
 - **Ventajas**:
@@ -32,19 +36,23 @@ Expo es una plataforma que envuelve React Native y proporciona herramientas y se
   - Soporte para web, iOS y Android desde un solo código base
 
 ### TypeScript
+
 El proyecto está completamente tipado con TypeScript para mejor seguridad de tipos y experiencia de desarrollo.
 
 ## 🏗️ Arquitectura del Proyecto
 
 ### Patrón de Diseño
+
 El proyecto sigue una arquitectura basada en **React Context API** para la gestión de estado global, con los siguientes principios:
 
-1. **Separación de Responsabilidades**: 
+1. **Separación de Responsabilidades**:
+
    - Componentes de UI (`src/components`)
    - Lógica de negocio (`src/contexts`, `src/services`)
    - Navegación (`app/`)
 
 2. **File-based Routing con Expo Router**:
+
    - La estructura de carpetas en `app/` define automáticamente las rutas
    - Grupos de rutas con `(auth)` y `(tabs)`
    - Layout compartidos con `_layout.tsx`
@@ -75,6 +83,7 @@ to-do-list-v3/
 │   ├── components/              # Componentes reutilizables
 │   │   ├── Button.tsx
 │   │   ├── EmptyState.tsx       # Componente para estados vacíos
+│   │   ├── FilterButton.tsx     # Botones de filtro
 │   │   ├── FloatingButton.tsx   # FAB para agregar tareas
 │   │   ├── Header.tsx           # Encabezado de la app
 │   │   ├── SearchBar.tsx        # Barra de búsqueda
@@ -85,22 +94,22 @@ to-do-list-v3/
 │   │
 │   ├── constants/               # Constantes de la aplicación
 │   │   ├── colors.ts           # Paleta de colores
+│   │   ├── config.ts           # Configuración del backend (API URL)
 │   │   └── theme.ts            # Sistema de diseño (spacing, font sizes)
 │   │
 │   ├── contexts/                # Contextos de React (Estado global)
-│   │   ├── AuthContext.tsx     # Gestión de autenticación
-│   │   ├── TodoContext.tsx     # Gestión de tareas
+│   │   ├── AuthContext.tsx     # Gestión de autenticación con JWT
+│   │   ├── TodoContext.tsx     # Gestión de tareas con backend
 │   │   └── TodoReducer.ts      # Reducer para acciones de tareas
 │   │
 │   ├── hooks/                   # Custom hooks
 │   │   ├── useAuth.ts          # Hook para acceder al contexto de auth
 │   │   └── useTodos.ts         # Hook para acceder al contexto de todos
 │   │
-│   ├── services/                # Capa de servicios (lógica de negocio)
-│   │   ├── auth.ts             # Servicio de autenticación
-│   │   ├── platformStorage.ts  # Storage multiplataforma (web/mobile)
-│   │   ├── storage.ts          # Persistencia de tareas
-│   │   └── users.ts            # Gestión de usuarios
+│   ├── services/                # Servicios de API y utilidades
+│   │   ├── auth-service.ts     # API: login y registro con JWT
+│   │   ├── todos-service.ts    # API: CRUD de tareas en el backend
+│   │   └── platformStorage.ts  # Storage multiplataforma (web/mobile)
 │   │
 │   └── utils/                   # Utilidades
 │       ├── alert.ts            # Alertas multiplataforma (web/mobile)
@@ -119,24 +128,29 @@ to-do-list-v3/
 ```
 Usuario ingresa credenciales
         ↓
-  loginUser() [services/users.ts]
+  getAuthService().login() [src/services/auth-service.ts]
         ↓
-  Valida credenciales simuladas
+  POST /auth/login al backend con axios
+        ↓
+  Recibe JWT token del servidor
         ↓
   login() actualiza AuthContext
         ↓
-  Guarda usuario en AsyncStorage
+  Guarda token en AsyncStorage/localStorage
         ↓
   Router redirige a (tabs)/
 ```
 
 **Implementación**:
+
 ```typescript
 // AuthContext proporciona:
 interface AuthContextType {
-  user: User | null;
+  user: AuthUser | null; // { userId, token }
+  token: string | null;
   isLoading: boolean;
-  login: (user: User) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 ```
@@ -146,27 +160,30 @@ interface AuthContextType {
 ```
 Usuario crea una tarea
         ↓
-  dispatch({ type: 'ADD', payload: {...} })
+  createTodo() [TodoContext]
         ↓
-  todoReducer procesa la acción
+  getTodosService(token).createTodo() [src/services/todos-service.ts]
         ↓
-  Genera UUID, crea nueva tarea
+  POST /todos al backend con JWT token
         ↓
-  Actualiza estado con nueva tarea
+  Recibe tarea creada con _id del servidor
         ↓
-  useEffect persiste en AsyncStorage
+  dispatch({ type: "ADD_TODO", payload: todo })
+        ↓
+  todoReducer actualiza estado
         ↓
   UI se re-renderiza automáticamente
 ```
 
 **Reducer Pattern**:
+
 ```typescript
 // Acciones disponibles:
 type TodoAction =
-  | { type: "ADD"; payload: { text, imageUri?, location? } }
-  | { type: "SET_STATUS"; payload: { id, status } }
-  | { type: "DELETE"; payload: string }
-  | { type: "SET"; payload: Todo[] }
+  | { type: "SET_TODOS"; payload: Todo[] }
+  | { type: "ADD_TODO"; payload: Todo }
+  | { type: "UPDATE_TODO"; payload: Todo }
+  | { type: "DELETE_TODO"; payload: string };
 ```
 
 ### 3. Navegación con Expo Router
@@ -186,6 +203,7 @@ app/
 ```
 
 **Protección de rutas**:
+
 ```typescript
 // En (tabs)/_layout.tsx
 if (!user) return <Redirect href="/(auth)/login" />;
@@ -194,9 +212,11 @@ if (!user) return <Redirect href="/(auth)/login" />;
 ## 🧩 Componentes Principales
 
 ### TaskItem.tsx
+
 **Responsabilidad**: Renderizar una tarjeta individual de tarea
 
 **Características**:
+
 - Muestra imagen adjunta (si existe)
 - Muestra ubicación con ícono (si existe)
 - Botones de cambio de estado (pending, in-progress, completed)
@@ -211,18 +231,22 @@ if (!user) return <Redirect href="/(auth)/login" />;
 ```
 
 ### TaskFormModal.tsx
+
 **Responsabilidad**: Modal para crear nuevas tareas con formulario completo
 
 **Funcionalidades**:
+
 - Input de texto para descripción
 - Selector de imagen (expo-image-picker)
 - Captura automática de ubicación (expo-location)
 - Validación de campos
 
 ### TodoContext
+
 **Responsabilidad**: Proveer estado global de tareas a toda la aplicación
 
 **Características**:
+
 - Estado en memoria con `useReducer`
 - Persistencia automática en `AsyncStorage`
 - Carga inicial desde almacenamiento local
@@ -231,6 +255,7 @@ if (!user) return <Redirect href="/(auth)/login" />;
 ## 📦 Instalación y Uso
 
 ### Prerrequisitos
+
 - Node.js (v16 o superior)
 - npm o yarn
 - Expo CLI (opcional, se instala automáticamente)
@@ -268,6 +293,7 @@ npm run lint       # Ejecuta ESLint
 ## ✨ Funcionalidades
 
 ### Implementadas
+
 - ✅ **Autenticación simulada** con persistencia
 - ✅ **CRUD de tareas** (Crear, Leer, Actualizar, Eliminar)
 - ✅ **Estados de tarea**: Pendiente, En progreso, Completado
@@ -285,25 +311,30 @@ npm run lint       # Ejecuta ESLint
 ### Detalles Técnicos
 
 #### Persistencia de Datos
+
 La aplicación utiliza un sistema de almacenamiento multiplataforma:
+
 ```typescript
 // platformStorage.ts - Adaptador multiplataforma
 // En web: usa localStorage
 // En móvil: usa AsyncStorage
 
-STORAGE_KEY_SESSION = "SESSION"    // Sesión de usuario
-STORAGE_KEY_USERS = "USERS"        // Base de datos de usuarios
-STORAGE_KEY_TODOS = "todos"        // Array de tareas
+STORAGE_KEY_SESSION = "SESSION"; // Sesión de usuario
+STORAGE_KEY_USERS = "USERS"; // Base de datos de usuarios
+STORAGE_KEY_TODOS = "todos"; // Array de tareas
 ```
 
 #### Generación de IDs
+
 Se utiliza `uuid` con polyfill `react-native-get-random-values` para generar IDs únicos:
+
 ```typescript
 import { v4 as uuidv4 } from "uuid";
 const newTodo = { id: uuidv4(), ... };
 ```
 
 #### Geolocalización
+
 ```typescript
 // Se solicita permiso y captura ubicación al crear tarea
 const { status } = await Location.requestForegroundPermissionsAsync();
@@ -316,10 +347,10 @@ El proyecto utiliza un sistema de diseño centralizado en `src/constants/theme.t
 
 ```typescript
 export const COLORS = {
-  background: '#1F1D2B',
-  card: '#252836',
-  primary: '#8B5CF6',
-  secondary: '#A78BFA',
+  background: "#1F1D2B",
+  card: "#252836",
+  primary: "#8B5CF6",
+  secondary: "#A78BFA",
   // ...
 };
 
@@ -346,6 +377,7 @@ export const SPACING = {
 La aplicación incluye adaptadores específicos para funcionar correctamente en navegadores web:
 
 ### PlatformStorage
+
 ```typescript
 // src/services/platformStorage.ts
 // Detecta automáticamente la plataforma y usa el almacenamiento apropiado
@@ -354,6 +386,7 @@ La aplicación incluye adaptadores específicos para funcionar correctamente en 
 ```
 
 ### Alertas Multiplataforma
+
 ```typescript
 // src/utils/alert.ts
 // Adapta las alertas según la plataforma
@@ -362,23 +395,23 @@ La aplicación incluye adaptadores específicos para funcionar correctamente en 
 ```
 
 ### Consideraciones Web
+
 - ✅ Todas las funcionalidades de móvil están disponibles en web
 - ✅ La interfaz es completamente responsive
 - ✅ Los datos persisten entre sesiones
 - ⚠️ Geolocalización y cámara requieren permisos del navegador
 
-
 ## 🛠️ Tecnologías y Librerías Clave
 
-| Librería | Propósito |
-|----------|-----------|
-| `expo-router` | Navegación file-based |
-| `@react-native-async-storage/async-storage` | Persistencia local |
-| `expo-image-picker` | Selector de imágenes |
-| `expo-location` | Geolocalización |
-| `react-native-safe-area-context` | Manejo de safe areas |
-| `uuid` | Generación de IDs únicos |
-| `@expo/vector-icons` | Iconos (Ionicons) |
+| Librería                                    | Propósito                |
+| ------------------------------------------- | ------------------------ |
+| `expo-router`                               | Navegación file-based    |
+| `@react-native-async-storage/async-storage` | Persistencia local       |
+| `expo-image-picker`                         | Selector de imágenes     |
+| `expo-location`                             | Geolocalización          |
+| `react-native-safe-area-context`            | Manejo de safe areas     |
+| `uuid`                                      | Generación de IDs únicos |
+| `@expo/vector-icons`                        | Iconos (Ionicons)        |
 
 ## 📱 Compatibilidad
 
