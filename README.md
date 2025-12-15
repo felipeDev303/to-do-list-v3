@@ -365,12 +365,213 @@ export const SPACING = {
 
 ## 🔐 Autenticación
 
-**Nota**: La autenticación es simulada para propósitos de demostración.
+La aplicación implementa autenticación JWT completa con el backend:
 
-- Cualquier email es válido
-- Password debe tener mínimo 6 caracteres
-- Los usuarios se persisten en almacenamiento multiplataforma (localStorage en web, AsyncStorage en móvil)
-- No hay backend real
+### Backend API
+
+- **URL Base**: `https://todo-list.dobleb.cl`
+- **Documentación**: [https://todo-list.dobleb.cl/docs](https://todo-list.dobleb.cl/docs)
+- **OpenAPI Schema**: [https://todo-list.dobleb.cl/openapi.json](https://todo-list.dobleb.cl/openapi.json)
+
+### Flujo de Autenticación
+
+1. **Registro** (`POST /auth/register`):
+   ```json
+   {
+     "email": "user@example.com",
+     "password": "password123"
+   }
+   ```
+   Respuesta: `{ "success": true, "data": { "token": "jwt...", "userId": "..." } }`
+
+2. **Login** (`POST /auth/login`):
+   ```json
+   {
+     "email": "user@example.com",
+     "password": "password123"
+   }
+   ```
+   Respuesta: `{ "success": true, "data": { "token": "jwt...", "userId": "..." } }`
+
+3. **Persistencia del Token**:
+   - El JWT token se guarda en AsyncStorage (móvil) o localStorage (web)
+   - Se incluye automáticamente en el header `Authorization: Bearer <token>` en todas las peticiones subsecuentes
+
+### Servicios de Autenticación
+
+```typescript
+// src/services/auth-service.ts
+export default function getAuthService() {
+  const apiClient = axios.create({
+    baseURL: API_URL,
+  });
+
+  async function login(payload: LoginPayload): Promise<LoginResponse>;
+  async function register(payload: RegisterPayload): Promise<RegisterResponse>;
+}
+```
+
+## 🌐 Integración con Backend
+
+### Configuración de la API
+
+```typescript
+// src/constants/config.ts
+export const API_URL = 
+  process.env.EXPO_PUBLIC_API_URL || "https://todo-list.dobleb.cl";
+```
+
+Para cambiar la URL del backend, crea un archivo `.env`:
+
+```bash
+EXPO_PUBLIC_API_URL=https://todo-list.dobleb.cl
+```
+
+### Endpoints Disponibles
+
+#### Autenticación
+- `POST /auth/register` - Registrar nuevo usuario
+- `POST /auth/login` - Iniciar sesión
+
+#### Todos (requieren autenticación)
+- `GET /todos` - Listar todas las tareas del usuario
+- `POST /todos` - Crear nueva tarea
+- `GET /todos/{id}` - Obtener tarea específica
+- `PUT /todos/{id}` - Actualizar tarea completa
+- `PATCH /todos/{id}` - Actualizar campos específicos de tarea
+- `DELETE /todos/{id}` - Eliminar tarea
+
+#### Imágenes (requieren autenticación)
+- `POST /images` - Subir imagen (multipart/form-data, máx 5MB)
+- `GET /images/{userId}/{imageId}` - Descargar imagen
+- `DELETE /images/{userId}/{imageId}` - Eliminar imagen
+
+### Estructura de una Tarea (Todo)
+
+```typescript
+interface Todo {
+  id: string;              // ID único generado por MongoDB
+  title: string;           // Descripción de la tarea
+  completed: boolean;      // Estado de completado
+  photoUri?: string;       // URL de imagen en Cloudflare R2
+  location?: {             // Ubicación opcional
+    latitude: number;
+    longitude: number;
+  };
+  userId: string;          // ID del usuario propietario
+  createdAt: string;       // ISO timestamp
+  updatedAt: string;       // ISO timestamp
+}
+```
+
+### Servicios de API
+
+#### TodosService
+
+```typescript
+// src/services/todos-service.ts
+export default function getTodosService(token: string) {
+  const apiClient = axios.create({
+    baseURL: API_URL,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  async function getTodos(): Promise<Todo[]>;
+  async function getTodoById(id: string): Promise<Todo>;
+  async function createTodo(payload: CreateTodoPayload): Promise<Todo>;
+  async function updateTodo(id: string, payload: UpdateTodoPayload): Promise<Todo>;
+  async function patchTodo(id: string, payload: Partial<UpdateTodoPayload>): Promise<Todo>;
+  async function deleteTodo(id: string): Promise<void>;
+}
+```
+
+#### ImagesService
+
+```typescript
+// src/services/images-service.ts
+export default function getImagesService(token: string) {
+  const apiClient = axios.create({
+    baseURL: API_URL,
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  async function uploadImage(imageUri: string, fileName?: string): Promise<string>;
+  async function deleteImage(userId: string, imageId: string): Promise<void>;
+}
+```
+
+### Manejo de Errores
+
+La aplicación maneja automáticamente los siguientes casos:
+
+- **401 Unauthorized**: Sesión expirada, redirige al login
+- **404 Not Found**: Recurso no encontrado
+- **400 Bad Request**: Validación fallida (ej: título vacío)
+- **413 Payload Too Large**: Imagen muy grande (máx 5MB)
+- **Network Errors**: Muestra mensaje de error de conexión
+
+```typescript
+// Ejemplo de manejo de errores en TodoContext
+try {
+  await todosService.createTodo(payload);
+} catch (error) {
+  if (error.message?.includes("Sesión expirada")) {
+    logout(); // Redirige al login
+  }
+  showAlert("Error", error.message);
+}
+```
+
+### Subida de Imágenes
+
+Flujo completo de subida de imagen con tarea:
+
+1. Usuario selecciona imagen con `expo-image-picker`
+2. Se obtiene URI local (`file://...`)
+3. Al crear tarea, si hay imagen local:
+   - Primero se sube la imagen a `/images` con multipart/form-data
+   - Se recibe URL permanente de Cloudflare R2
+   - Luego se crea la tarea con `photoUri` apuntando a la URL permanente
+4. Si falla subida de imagen, se crea tarea sin imagen
+
+```typescript
+// src/contexts/TodoContext.tsx
+if (payload.photoUri && payload.photoUri.startsWith("file://")) {
+  const imagesService = getImagesService(token);
+  const uploadedImageUrl = await imagesService.uploadImage(payload.photoUri);
+  finalPayload.photoUri = uploadedImageUrl; // URL permanente
+}
+```
+
+### Formatos de Respuesta
+
+Todas las respuestas del backend siguen el formato:
+
+```typescript
+// Éxito
+{
+  "success": true,
+  "data": { /* datos */ }
+}
+
+// Error
+{
+  "success": false,
+  "error": "Mensaje de error"
+}
+
+// Lista con conteo
+{
+  "success": true,
+  "data": [ /* items */ ],
+  "count": 5
+}
+```
 
 ## 🌐 Compatibilidad Web
 
