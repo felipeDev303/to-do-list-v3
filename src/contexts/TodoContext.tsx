@@ -34,12 +34,6 @@ export function TodoProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const { token, logout } = useContext(AuthContext);
 
-  useEffect(() => {
-    if (token) {
-      fetchTodos();
-    }
-  }, [token]);
-
   const handleAuthError = useCallback(
     (error: any) => {
       if (error.message?.includes("Sesión expirada")) {
@@ -156,6 +150,12 @@ export function TodoProvider({ children }: { children: React.ReactNode }) {
     },
     [token, handleAuthError]
   );
+
+  useEffect(() => {
+    if (token) {
+      fetchTodos();
+    }
+  }, [token, fetchTodos]);
 
   return (
     <TodoContext.Provider
