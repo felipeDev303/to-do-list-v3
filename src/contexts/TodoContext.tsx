@@ -6,6 +6,7 @@ import {
   useReducer,
   useState,
 } from "react";
+import getImagesService from "../services/images-service";
 import getTodosService, {
   CreateTodoPayload,
   UpdateTodoPayload,
@@ -78,22 +79,22 @@ export function TodoProvider({ children }: { children: React.ReactNode }) {
         // Si hay una imagen local (URI del dispositivo), intentar subirla
         let finalPayload = { ...payload };
 
-        if (payload.imageUrl && payload.imageUrl.startsWith("file://")) {
+        if (payload.photoUri && payload.photoUri.startsWith("file://")) {
           try {
             console.log("📤 Subiendo imagen al servidor...");
             const imagesService = getImagesService(token);
             const uploadedImageUrl = await imagesService.uploadImage(
-              payload.imageUrl
+              payload.photoUri
             );
             console.log("✅ Imagen subida:", uploadedImageUrl);
-            finalPayload.imageUrl = uploadedImageUrl;
+            finalPayload.photoUri = uploadedImageUrl;
           } catch (imageError) {
             console.warn(
               "⚠️ Error al subir imagen, continuando sin ella:",
               imageError
             );
             // Si falla la subida de imagen, crear tarea sin imagen
-            finalPayload.imageUrl = undefined;
+            finalPayload.photoUri = undefined;
           }
         }
 

@@ -13,6 +13,7 @@ export interface ImageUploadResponse {
 }
 
 export default function getImagesService(token: string) {
+  console.log("🔧 Images Service - URL:", `${API_URL}/images`);
   const apiClient = axios.create({
     baseURL: `${API_URL}/images`,
     headers: {

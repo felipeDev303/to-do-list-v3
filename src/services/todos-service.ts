@@ -100,13 +100,13 @@ export default function getTodosService(token: string) {
 
   async function createTodo(payload: CreateTodoPayload) {
     try {
-      console.log("📝 Creando tarea:", {
-        title: payload.title,
-        hasImage: !!payload.photoUri,
-        hasLocation: !!payload.location,
-      });
+      console.log(
+        "📝 Creando tarea con payload:",
+        JSON.stringify(payload, null, 2)
+      );
+      console.log("📝 URL completa:", `${API_URL}/todos/`);
       const response = await apiClient.post<TodoResponse>("/", payload);
-      console.log("✅ Tarea creada exitosamente");
+      console.log("✅ Tarea creada exitosamente:", response.data);
       return response.data.data;
     } catch (error) {
       if (isAxiosError(error) && error.response) {
