@@ -30,7 +30,7 @@ export default function TaskFormModal({ visible, onClose, onSubmit }: Props) {
 
   useEffect(() => {
     if (visible) {
-      // Reset form when modal opens
+      // Cuando se abre el modal, reiniciamos el estado
       setText("");
       setImage(undefined);
       setLocation(undefined);
@@ -45,7 +45,7 @@ export default function TaskFormModal({ visible, onClose, onSubmit }: Props) {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
+      mediaTypes: ["images"],
       allowsEditing: true,
       aspect: [4, 3],
       quality: 0.5,
@@ -84,7 +84,7 @@ export default function TaskFormModal({ visible, onClose, onSubmit }: Props) {
       }
 
       const location = await Location.getCurrentPositionAsync({});
-      
+
       // Reverse geocoding to get address (optional)
       let address = "Ubicación actual";
       try {
@@ -94,7 +94,9 @@ export default function TaskFormModal({ visible, onClose, onSubmit }: Props) {
         });
         if (reverseGeocode.length > 0) {
           const item = reverseGeocode[0];
-          address = `${item.street || ''} ${item.streetNumber || ''}, ${item.city || ''}`;
+          address = `${item.street || ""} ${item.streetNumber || ""}, ${
+            item.city || ""
+          }`;
         }
       } catch (e) {
         console.log("Error reverse geocoding", e);
@@ -142,20 +144,32 @@ export default function TaskFormModal({ visible, onClose, onSubmit }: Props) {
               <Text style={styles.sectionTitle}>Adjuntar Imagen</Text>
               <View style={styles.row}>
                 <TouchableOpacity style={styles.iconButton} onPress={pickImage}>
-                  <Ionicons name="images-outline" size={24} color={COLORS.primary} />
+                  <Ionicons
+                    name="images-outline"
+                    size={24}
+                    color={COLORS.primary}
+                  />
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.iconButton} onPress={takePhoto}>
-                  <Ionicons name="camera-outline" size={24} color={COLORS.primary} />
+                  <Ionicons
+                    name="camera-outline"
+                    size={24}
+                    color={COLORS.primary}
+                  />
                 </TouchableOpacity>
               </View>
               {image && (
                 <View style={styles.previewContainer}>
                   <Image source={{ uri: image }} style={styles.previewImage} />
-                  <TouchableOpacity 
-                    style={styles.removeButton} 
+                  <TouchableOpacity
+                    style={styles.removeButton}
                     onPress={() => setImage(undefined)}
                   >
-                    <Ionicons name="close-circle" size={24} color={COLORS.accent} />
+                    <Ionicons
+                      name="close-circle"
+                      size={24}
+                      color={COLORS.accent}
+                    />
                   </TouchableOpacity>
                 </View>
               )}
@@ -164,21 +178,26 @@ export default function TaskFormModal({ visible, onClose, onSubmit }: Props) {
             {/* Location Section */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Ubicación</Text>
-              <TouchableOpacity 
-                style={styles.locationButton} 
+              <TouchableOpacity
+                style={styles.locationButton}
                 onPress={getLocation}
                 disabled={loadingLocation}
               >
                 {loadingLocation ? (
                   <ActivityIndicator size="small" color={COLORS.primary} />
                 ) : (
-                  <Ionicons 
-                    name={location ? "location" : "location-outline"} 
-                    size={24} 
-                    color={location ? COLORS.primary : COLORS.textSecondary} 
+                  <Ionicons
+                    name={location ? "location" : "location-outline"}
+                    size={24}
+                    color={location ? COLORS.primary : COLORS.textSecondary}
                   />
                 )}
-                <Text style={[styles.locationText, location && styles.locationTextActive]}>
+                <Text
+                  style={[
+                    styles.locationText,
+                    location && styles.locationTextActive,
+                  ]}
+                >
                   {location ? location.address : "Agregar ubicación"}
                 </Text>
               </TouchableOpacity>
@@ -189,7 +208,10 @@ export default function TaskFormModal({ visible, onClose, onSubmit }: Props) {
             <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
               <Text style={styles.cancelText}>Cancelar</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+            <TouchableOpacity
+              style={styles.submitButton}
+              onPress={handleSubmit}
+            >
               <Text style={styles.submitText}>Guardar</Text>
             </TouchableOpacity>
           </View>
